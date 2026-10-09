@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-title" content="Jom Cakap">
+<meta name="theme-color" content="#23764A">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Jom Cakap</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Grandstander:wght@600;800&display=swap">
+<style>
+/* Layout: one-screen iPad app. A top bar, then one focused "card table" per activity. Ketupat-weave texture marks the home ground. */
+:root{
+  --bg:#EEF4EA;          /* pale pandan paper */
+  --card:#FFFFFF;
+  --ink:#1D2B22;
+  --muted:#5D6E62;
+  --line:#D5E0D2;
+  --pandan:#23764A;      /* primary */
+  --pandan-soft:#DCEFE2;
+  --kunyit:#F0AE2E;      /* turmeric: stars, rewards */
+  --kunyit-soft:#FCEFD0;
+  --songket:#962A47;     /* maroon: headings accent, errors */
+  --songket-soft:#F6DDE3;
+  --sky:#2F73B5;         /* audio */
+  --sky-soft:#DDEAF7;
+  --weave1:rgba(35,118,74,.06);
+  --weave2:rgba(240,174,46,.08);
+  --shadow:0 2px 0 rgba(29,43,34,.08), 0 8px 24px rgba(29,43,34,.06);
+  --f-display:"Grandstander","Chalkboard SE","Comic Sans MS",system-ui,sans-serif;
+  --f-read:"Andika","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111915;--card:#1B2620;--ink:#E8F1EA;--muted:#9DB1A3;--line:#2C3B32;
+  --pandan:#5CC089;--pandan-soft:#1F3A2B;--kunyit:#F4C15A;--kunyit-soft:#3A3018;
+  --songket:#EC7E98;--songket-soft:#3E2029;--sky:#7DB5EA;--sky-soft:#1C3046;
+  --weave1:rgba(92,192,137,.035);--weave2:rgba(244,193,90,.03);
+  --shadow:0 2px 0 rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111915;--card:#1B2620;--ink:#E8F1EA;--muted:#9DB1A3;--line:#2C3B32;
+  --pandan:#5CC089;--pandan-soft:#1F3A2B;--kunyit:#F4C15A;--kunyit-soft:#3A3018;
+  --songket:#EC7E98;--songket-soft:#3E2029;--sky:#7DB5EA;--sky-soft:#1C3046;
+  --weave1:rgba(92,192,137,.035);--weave2:rgba(244,193,90,.03);
+  --shadow:0 2px 0 rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);color-scheme:dark}
+
+html,body{height:100%}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-read);font-size:18px;line-height:1.45;
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+body.home{background-image:
+  repeating-linear-gradient(45deg,var(--weave1) 0 14px,transparent 14px 28px),
+  repeating-linear-gradient(-45deg,var(--weave2) 0 14px,transparent 14px 28px)}
+#app{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;min-height:100%;box-sizing:border-box}
+h1,h2,h3{font-family:var(--f-display);font-weight:800;margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(28px,4.4vw,40px)}
+h2{font-size:clamp(22px,3.2vw,30px)}
+h3{font-size:20px}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+.col{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+.en{color:var(--muted);font-size:15px;font-style:italic}
+body:not(.show-en) .en{display:none}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:12px;padding-block:6px 14px}
+.bar .title{font-family:var(--f-display);font-weight:800;font-size:22px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{width:52px;height:52px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;font-size:24px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--kunyit-soft);font-weight:700;font-variant-numeric:tabular-nums}
+.toggle-en{font-family:var(--f-display);font-weight:800;font-size:16px}
+body.show-en .toggle-en{background:var(--sky);color:#fff}
+
+/* surfaces */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
+.btn{min-height:56px;padding:0 22px;border-radius:16px;font-family:var(--f-display);font-weight:800;font-size:20px;
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--pandan);color:#fff;
+  box-shadow:0 4px 0 color-mix(in srgb,var(--pandan) 60%,#000)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--pandan) 60%,#000)}
+.btn.ghost{background:var(--card);color:var(--ink);box-shadow:0 4px 0 var(--line),inset 0 0 0 2px var(--line)}
+.btn.audio{background:var(--sky);box-shadow:0 4px 0 color-mix(in srgb,var(--sky) 60%,#000)}
+.btn.warm{background:var(--kunyit);color:#2a1d00;box-shadow:0 4px 0 color-mix(in srgb,var(--kunyit) 60%,#000)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn.big{min-height:68px;font-size:24px;padding:0 30px}
+.say{display:inline-grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--sky);color:#fff;font-size:22px;flex:none;box-shadow:0 3px 0 color-mix(in srgb,var(--sky) 60%,#000)}
+.say.sm{width:40px;height:40px;font-size:17px}
+.say.playing{animation:pulse .8s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+
+/* home */
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+.greet small{display:block;font-family:var(--f-read);font-weight:400;font-size:16px;color:var(--muted)}
+.mission{border:3px solid var(--kunyit);background:linear-gradient(var(--card),var(--card)) padding-box}
+.mission ol{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.mission li{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--bg)}
+.mission li.done{opacity:.55}
+.mission .tick{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--card);font-weight:800;flex:none;font-family:var(--f-display)}
+.mission li.done .tick{background:var(--pandan);color:#fff}
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.unit{position:relative;text-align:left;padding:14px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);min-height:118px;display:flex;flex-direction:column;gap:6px}
+.unit .num{font-family:var(--f-display);font-weight:800;color:var(--muted);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.unit .nm{font-family:var(--f-display);font-weight:800;font-size:18px;line-height:1.15}
+.unit .pic{font-size:30px;line-height:1}
+.unit.locked{opacity:.5;box-shadow:none;background:transparent;border:2px dashed var(--line)}
+.unit.open{outline:3px solid var(--pandan);outline-offset:-3px}
+.unit .term{position:absolute;top:10px;right:12px;font-size:12px;color:var(--muted);font-weight:700}
+
+/* unit ladder */
+.ladder{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.rung{display:flex;gap:14px;align-items:center;text-align:left;padding:16px;border-radius:18px;background:var(--card);box-shadow:var(--shadow)}
+.rung .ico{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;font-size:30px;background:var(--pandan-soft);flex:none}
+.rung .step{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.rung .nm{font-family:var(--f-display);font-weight:800;font-size:20px;line-height:1.1}
+.rung.next{outline:3px solid var(--kunyit);outline-offset:-3px}
+.stars{color:var(--kunyit);letter-spacing:2px;font-size:18px}
+.stars .off{color:var(--line)}
+.arc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.arc b{color:var(--ink)}
+
+/* word cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.wcard{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;position:relative}
+.wcard .pic{font-size:64px;line-height:1.1}
+.wcard .w{font-family:var(--f-read);font-weight:700;font-size:26px}
+.wcard .syl{font-size:18px;color:var(--songket);font-weight:700;letter-spacing:.02em}
+.wcard.seen::after{content:"✓";position:absolute;top:8px;right:12px;color:var(--pandan);font-weight:800}
+.wcard.playing{outline:3px solid var(--sky)}
+
+/* quiz */
+.prompt{display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap;text-align:center}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (min-width:700px){.choices.four{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.choice{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:120px;justify-content:center;font-size:22px;font-weight:700}
+.choice .pic{font-size:60px;line-height:1}
+.choice.right{background:var(--pandan-soft);outline:3px solid var(--pandan)}
+.choice.wrong{background:var(--songket-soft);outline:3px solid var(--songket);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.progress{height:12px;border-radius:999px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--pandan);border-radius:999px;transition:width .3s}
+
+/* big reading text */
+.read{font-family:var(--f-read);font-size:clamp(28px,4.6vw,42px);line-height:1.35;font-weight:700}
+.sylrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.sylrow button{font-family:var(--f-read);font-weight:700;font-size:clamp(30px,5vw,46px);padding:6px 16px;border-radius:16px;background:var(--sky-soft);color:var(--ink);min-width:72px}
+.sylrow button.lit{background:var(--sky);color:#fff}
+.tip{background:var(--kunyit-soft);border-radius:14px;padding:12px 14px;font-size:16px}
+.tip b{font-family:var(--f-display)}
+.faces{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.faces button{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700;font-size:17px}
+.faces button span{font-size:44px;line-height:1.1}
+
+/* tiles */
+.slot{min-height:84px;border-radius:18px;border:3px dashed var(--line);padding:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--bg)}
+.slot.ok{border:3px solid var(--pandan);background:var(--pandan-soft)}
+.slot.bad{border-color:var(--songket);animation:shake .35s}
+.tiles{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.tile{font-family:var(--f-read);font-weight:700;font-size:clamp(24px,3.6vw,32px);padding:10px 18px;border-radius:14px;background:var(--card);
+  box-shadow:0 4px 0 var(--line),inset 0 0 0 2px var(--line);min-height:60px}
+.tile.used{visibility:hidden}
+.tile.placed{background:var(--kunyit-soft);box-shadow:0 3px 0 color-mix(in srgb,var(--kunyit) 50%,transparent)}
+.tile.syl{color:var(--songket)}
+
+/* scene */
+.scene-wrap{border-radius:20px;overflow:hidden;box-shadow:var(--shadow);background:var(--card)}
+.scene-wrap svg{display:block;width:100%;height:auto}
+.scene-wrap .who{cursor:pointer}
+.scene-wrap .who .halo{fill:transparent;stroke:transparent;stroke-width:5}
+.scene-wrap .who.active .halo{stroke:var(--kunyit);fill:color-mix(in srgb,var(--kunyit) 20%,transparent)}
+.scene-wrap .who.done .halo{stroke:var(--pandan)}
+.wheel{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.wq h3{display:flex;gap:8px;align-items:center;font-size:18px;margin-bottom:8px}
+.wq .opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{padding:10px 14px;border-radius:14px;background:var(--bg);font-weight:700;font-size:19px;box-shadow:inset 0 0 0 2px var(--line);min-height:52px;display:inline-flex;align-items:center;gap:8px}
+.opt.sel{background:var(--pandan);color:#fff;box-shadow:none}
+.opt.bad{background:var(--songket-soft);box-shadow:inset 0 0 0 2px var(--songket);animation:shake .35s}
+.story p{font-size:clamp(22px,3.2vw,28px);font-weight:700;line-height:1.45;padding:6px 10px;border-radius:12px}
+.story p.lit{background:var(--kunyit-soft)}
+.story .lbl{font-family:var(--f-display);font-weight:800;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--songket);margin-top:6px}
+.story.hidden-text p .t{filter:blur(9px)}
+.word{border-radius:8px;padding:0 2px}
+.word:active,.word.lit{background:var(--sky-soft)}
+
+/* chat */
+.chat{display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:10px;align-items:flex-end;max-width:92%}
+.msg .av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:28px;background:var(--pandan-soft);flex:none}
+.msg .bub{background:var(--card);box-shadow:var(--shadow);border-radius:18px 18px 18px 4px;padding:12px 16px;font-size:22px;font-weight:700;min-width:0}
+.msg.me{align-self:flex-end;flex-direction:row-reverse}
+.msg.me .bub{background:var(--kunyit-soft);border-radius:18px 18px 4px 18px}
+.msg.me .av{background:var(--kunyit-soft)}
+.fix{margin-top:8px;font-size:16px;font-weight:400;background:var(--sky-soft);border-radius:12px;padding:8px 10px}
+.answers{display:flex;flex-wrap:wrap;gap:10px}
+textarea,input[type=text],input[type=number],select{font:inherit;font-size:20px;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;box-sizing:border-box;-webkit-user-select:text;user-select:text}
+textarea{min-height:96px;resize:vertical}
+
+/* book */
+.book{background:var(--card);border-radius:8px 22px 22px 8px;box-shadow:var(--shadow);padding:26px 26px 26px 34px;position:relative;
+  background-image:repeating-linear-gradient(transparent 0 47px,var(--line) 47px 49px);background-position:0 18px}
+.book::before{content:"";position:absolute;left:14px;top:0;bottom:0;width:3px;background:var(--songket-soft)}
+.book h2{color:var(--songket);margin-bottom:10px}
+.book p{font-size:clamp(22px,3.2vw,28px);line-height:49px;font-weight:700}
+
+/* celebration */
+.celebrate{text-align:center;padding-block:30px}
+.celebrate .big{font-size:96px;line-height:1;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+.celebrate .stars{font-size:54px}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* parent */
+.skill{display:grid;grid-template-columns:150px 1fr 48px;gap:12px;align-items:center}
+.skill .progress{height:14px}
+.skill .progress i{background:var(--kunyit)}
+.fam{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.fam .fm{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:14px;padding:8px 10px;font-weight:700}
+.fam input{width:64px;padding:6px 8px;font-size:18px}
+.stepper{display:flex;align-items:center;gap:6px;margin-left:auto}
+.stepper button{width:36px;height:36px;border-radius:10px;background:var(--card);box-shadow:inset 0 0 0 2px var(--line);font-weight:800}
+.stepper output{min-width:20px;text-align:center;font-variant-numeric:tabular-nums}
+.notice{border-left:5px solid var(--songket);background:var(--songket-soft);border-radius:12px;padding:12px 14px;font-size:16px}
+.ok-note{border-left:5px solid var(--pandan);background:var(--pandan-soft);border-radius:12px;padding:12px 14px;font-size:16px}
+details summary{cursor:pointer;font-family:var(--f-display);font-weight:800;font-size:19px;padding:6px 0}
+ul.tips{margin:0;padding-left:20px;display:grid;gap:8px}
+.journey{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.journey div{background:var(--bg);border-radius:14px;padding:12px}
+.journey b{font-family:var(--f-display);display:block;font-size:17px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:700;z-index:9;max-width:calc(100% - 32px)}
+/* speak & score */
+.micbox{align-items:stretch}
+.card .micbox,.card.micbox .micbox{box-shadow:none}
+.card .card.micbox{background:var(--bg);box-shadow:none}
+.mw-center{display:flex;flex-direction:column;align-items:center;gap:8px}
+.mic{width:116px;height:116px;border-radius:50%;background:var(--songket);color:#fff;font-size:52px;display:grid;place-items:center;
+  box-shadow:0 6px 0 color-mix(in srgb,var(--songket) 55%,#000)}
+.mic:active{transform:translateY(4px);box-shadow:0 2px 0 color-mix(in srgb,var(--songket) 55%,#000)}
+.mic.on{background:var(--pandan);box-shadow:0 0 0 0 color-mix(in srgb,var(--pandan) 50%,transparent);animation:ring 1.2s infinite}
+.mic.on span{font-size:40px}
+@keyframes ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pandan) 45%,transparent)}100%{box-shadow:0 0 0 26px transparent}}
+.mw-hint{text-align:center;font-size:18px}
+.mw-words{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:clamp(24px,4vw,34px);font-weight:700}
+.mw-words span{padding:2px 10px;border-radius:10px}
+.mw-ok{background:var(--pandan-soft);color:var(--pandan)}
+.mw-near{background:var(--kunyit-soft);color:color-mix(in srgb,var(--kunyit) 55%,var(--ink))}
+.mw-miss{background:var(--songket-soft);color:var(--songket);text-decoration:underline wavy}
+label.btn{cursor:pointer}
+@media (max-width:560px){
+  .hero{grid-template-columns:1fr}
+  .skill{grid-template-columns:110px 1fr 40px}
+  .choice .pic{font-size:48px}
+  .mission li{flex-wrap:wrap}
+  .mission li .btn{width:100%}
+  .bar .title{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div id="app"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* =========================================================
+   CONTENT — Unit 3: Keluarga Saya (P1)
+   ========================================================= */
+const WORDS = {
+  ayah:{ms:"ayah",en:"father",pic:"👨",syl:["a","yah"],tip:"Say both vowels clearly: a-yah. The h at the end is just a soft breath."},
+  ibu:{ms:"ibu",en:"mother",pic:"👩",syl:["i","bu"],tip:"i as in 'see', u as in 'moon'. Short and even: i-bu."},
+  abang:{ms:"abang",en:"older brother",pic:"👦",syl:["a","bang"],tip:"ng is like the end of 'sing' — no hard g sound."},
+  kakak:{ms:"kakak",en:"older sister",pic:"👧",syl:["ka","kak"],tip:"The last k is a soft stop in the throat, not a strong English k."},
+  adik:{ms:"adik",en:"younger brother / sister",pic:"🧒",syl:["a","dik"],tip:"The final k is a quiet catch in the throat: a-di'."},
+  datuk:{ms:"datuk",en:"grandfather",pic:"👴",syl:["da","tuk"],tip:"Final k is soft again: da-tu'. Both syllables equal stress."},
+  nenek:{ms:"nenek",en:"grandmother",pic:"👵",syl:["ne","nek"],tip:"Both e's sound like the e in 'bed'. Final k is soft."},
+  bayi:{ms:"bayi",en:"baby",pic:"👶",syl:["ba","yi"],tip:"ba-yi, two clear beats."},
+  keluarga:{ms:"keluarga",en:"family",pic:"👨‍👩‍👧‍👦",syl:["ke","lu","ar","ga"],tip:"The first e is short and soft, like the a in 'about': kə-lu-ar-ga."},
+  rumah:{ms:"rumah",en:"house / home",pic:"🏠",syl:["ru","mah"],tip:"Tap the r lightly with the tongue. Soft h at the end."},
+  saya:{ms:"saya",en:"I / my",pic:"🙋",syl:["sa","ya"],tip:"Every a sounds like 'ah': sa-ya."},
+  membaca:{ms:"membaca",en:"reading",pic:"📖",syl:["mem","ba","ca"],tip:"c in Malay sounds like 'ch' in 'chair': mem-ba-cha."},
+  memasak:{ms:"memasak",en:"cooking",pic:"🍳",syl:["me","ma","sak"],tip:"me is short and soft (mə). Final k is soft."},
+  bermain:{ms:"bermain",en:"playing",pic:"⚽",syl:["ber","ma","in"],tip:"ma-in is two beats, not 'main' like English."},
+  menyiram:{ms:"menyiram",en:"watering",pic:"🪴",syl:["me","nyi","ram"],tip:"ny sounds like the ny in 'canyon'."},
+  tidur:{ms:"tidur",en:"sleeping",pic:"😴",syl:["ti","dur"],tip:"ti-dur. Light tapped r at the end."},
+  makan:{ms:"makan",en:"eating",pic:"🍚",syl:["ma","kan"],tip:"ma-kan, both a's like 'ah'."},
+  gembira:{ms:"gembira",en:"happy",pic:"😄",syl:["gem","bi","ra"],tip:"gem has the soft e (gəm)."},
+  sayang:{ms:"sayang",en:"love",pic:"❤️",syl:["sa","yang"],tip:"Ends in ng, like 'sing'."}
+};
+const FAMILY_IDS=["ayah","ibu","abang","kakak","adik","datuk","nenek","bayi"];
+const KATA_SET=["ayah","ibu","abang","kakak","adik","datuk","nenek","bayi","keluarga","rumah","membaca","memasak","bermain","menyiram","tidur","makan","gembira","sayang"];
+const NUM=["kosong","satu","dua","tiga","empat","lima","enam","tujuh","lapan","sembilan","sepuluh","sebelas","dua belas"];
+
+const SEBUT_ITEMS=[
+  {w:"ayah"},{w:"ibu"},{w:"abang"},{w:"kakak"},{w:"adik"},{w:"nenek"},{w:"keluarga"},
+  {s:"Ini ayah saya.",en:"This is my father.",tip:"Ini = this (near you). Itu = that (further away)."},
+  {s:"Saya sayang keluarga saya.",en:"I love my family.",tip:"Notice saya appears twice: 'I' and 'my'. Malay puts saya after the noun: keluarga saya = my family."}
+];
+
+const BINA=[
+  {s:"Ini ayah saya.",en:"This is my father.",pic:"👨",extra:["makan"]},
+  {s:"Itu nenek saya.",en:"That is my grandmother.",pic:"👵",extra:["tidur"]},
+  {s:"Ibu saya sedang memasak.",en:"My mother is cooking.",pic:"👩‍🍳",extra:["ayah"]},
+  {s:"Adik saya sedang tidur.",en:"My younger brother is sleeping.",pic:"😴",extra:["membaca"]},
+  {s:"Abang saya sedang bermain bola.",en:"My older brother is playing football.",pic:"⚽",extra:["rumah"]},
+  {s:"Datuk sedang membaca buku.",en:"Grandfather is reading a book.",pic:"📖",extra:["bayi"]},
+  {s:"Saya sayang keluarga saya.",en:"I love my family.",pic:"❤️",extra:["ibu"]}
+];
+
+const SCENE_PEOPLE=[
+  {id:"ayah",who:"Ayah",pic:"👨",act:"membaca surat khabar",actPic:"📰",place:"di ruang tamu",x:150,y:150},
+  {id:"ibu",who:"Ibu",pic:"👩",act:"memasak",actPic:"🍳",place:"di dapur",x:445,y:150},
+  {id:"kakak",who:"Kakak",pic:"👧",act:"menyiram pokok bunga",actPic:"🪴",place:"di taman",x:470,y:330},
+  {id:"ali",who:"Ali",pic:"👦",act:"bermain bola",actPic:"⚽",place:"di taman",x:180,y:330}
+];
+const PLACES=[{t:"di ruang tamu",pic:"🛋️",en:"in the living room"},{t:"di dapur",pic:"🍲",en:"in the kitchen"},{t:"di taman",pic:"🌳",en:"in the garden"}];
+const FEELINGS=[{t:"gembira",pic:"😄",en:"happy"},{t:"sedih",pic:"😢",en:"sad"},{t:"marah",pic:"😠",en:"angry"}];
+
+const STORY={title:"Keluarga Siti",pic:"👧",lines:[
+  {t:"Nama saya Siti.",en:"My name is Siti."},
+  {t:"Saya berumur tujuh tahun.",en:"I am seven years old."},
+  {t:"Ada lima orang dalam keluarga saya.",en:"There are five people in my family."},
+  {t:"Ayah saya seorang doktor.",en:"My father is a doctor."},
+  {t:"Ibu saya seorang guru.",en:"My mother is a teacher."},
+  {t:"Saya ada seorang abang dan seorang adik.",en:"I have an older brother and a younger sibling."},
+  {t:"Abang saya suka bermain bola.",en:"My older brother likes to play football."},
+  {t:"Adik saya masih bayi.",en:"My younger sibling is still a baby."},
+  {t:"Saya sayang keluarga saya.",en:"I love my family."}
+],q:[
+  {q:"Berapakah umur Siti?",en:"How old is Siti?",opts:[["enam tahun","6"],["tujuh tahun","7"],["lapan tahun","8"]],a:1},
+  {q:"Ayah Siti seorang ...",en:"Siti's father is a ...",opts:[["doktor","🧑‍⚕️"],["guru","🧑‍🏫"],["polis","👮"]],a:0},
+  {q:"Siapakah yang suka bermain bola?",en:"Who likes to play football?",opts:[["abang","👦"],["adik","👶"],["ibu","👩"]],a:0},
+  {q:"Adik Siti masih ...",en:"Siti's younger sibling is still a ...",opts:[["besar","🐘"],["bayi","👶"],["sekolah","🏫"]],a:1},
+  {q:"Siti ... keluarganya.",en:"Siti ... her family.",opts:[["sayang","❤️"],["marah","😠"],["takut","😨"]],a:0}
+]};
+
+const JOBS=[["guru","🧑‍🏫","teacher"],["doktor","🧑‍⚕️","doctor"],["jurutera","👷","engineer"],["pemandu","🚗","driver"],["peniaga","🏪","businessperson"],["jururawat","🧑‍⚕️","nurse"],["polis","👮","police officer"],["suri rumah","🏠","homemaker"],["pegawai","💼","officer"]];
+const WEEKEND=[["bermain di taman","🌳","play at the park"],["makan di restoran","🍽️","eat at a restaurant"],["menonton televisyen","📺","watch TV"],["bersiar-siar","🚶","go for an outing"],["berenang","🏊","swim"]];
+const SPELL=["ayah","ibu","abang","kakak","adik","datuk","nenek","bayi","rumah","keluarga"];
+
+const STAGES=[
+  {k:"kata",nm:"Kenal Kata",en:"Meet the words",ico:"🃏",skill:"dengar"},
+  {k:"dengar",nm:"Dengar & Pilih",en:"Listen and choose",ico:"👂",skill:"dengar"},
+  {k:"sebut",nm:"Sebut",en:"Say it right",ico:"🗣️",skill:"tutur"},
+  {k:"bina",nm:"Bina Ayat",en:"Build sentences",ico:"🧱",skill:"baca"},
+  {k:"cerita",nm:"Cerita Gambar",en:"Describe a picture",ico:"🖼️",skill:"tutur"},
+  {k:"bual",nm:"Mari Berbual",en:"Have a conversation",ico:"💬",skill:"bual"},
+  {k:"baca",nm:"Baca & Faham",en:"Read and understand",ico:"📚",skill:"baca"},
+  {k:"tulis",nm:"Tulis",en:"Write about my family",ico:"✏️",skill:"tulis"}
+];
+const SKILLS=[
+  {k:"dengar",nm:"Mendengar",en:"Listening",stages:["kata","dengar"]},
+  {k:"tutur",nm:"Bertutur",en:"Speaking",stages:["sebut","cerita"]},
+  {k:"bual",nm:"Interaksi Lisan",en:"Conversation",stages:["bual"]},
+  {k:"baca",nm:"Membaca",en:"Reading",stages:["bina","baca"]},
+  {k:"tulis",nm:"Menulis",en:"Writing",stages:["tulis"]}
+];
+const UNITS=[
+  {n:"Siap Sedia",nm:"Siap Sedia",pic:"🎒",t:1},
+  {n:"Unit 1",nm:"Sekolah Saya",pic:"🏫",t:1},
+  {n:"Unit 2",nm:"Diri Saya",pic:"🙋",t:1},
+  {n:"Unit 3",nm:"Keluarga Saya",pic:"👨‍👩‍👧‍👦",t:1,open:true},
+  {n:"Unit 4",nm:"Rakan-rakan Saya",pic:"🤝",t:2},
+  {n:"Unit 5",nm:"Kegemaran Saya",pic:"🍦",t:2},
+  {n:"Unit 6",nm:"Bersiar-siar",pic:"🚌",t:2},
+  {n:"Unit 7",nm:"Aktiviti Harian",pic:"⏰",t:3},
+  {n:"Unit 8",nm:"Belajar Apa Hari Ini?",pic:"📝",t:3},
+  {n:"Unit 9",nm:"Aktif di Sekolah",pic:"🏃",t:3},
+  {n:"Unit 10",nm:"Rumah Saya",pic:"🏠",t:4},
+  {n:"Unit 11",nm:"Jiran Saya",pic:"🏘️",t:4}
+];
+const PRAISE=["Syabas!","Bagus!","Hebat!","Pandai!","Betul!"];
+</script>
+<script>
+/* =========================================================
+   LISTEN & SCORE — on-device speech recognition + recording
+   ========================================================= */
+const IN_CLAUDE=!!(window.claude&&window.claude.use);
+
+/* Later: set this to the URL of the small Azure helper (see README).
+   When set, each recording is POSTed there and its pronunciation scores
+   replace the basic on-iPad score. Expected reply:
+   {stars:0-3, words:[{w:"ayah", status:"ok"|"near"|"miss"}], heard:"..."} */
+const PRON_CONFIG={azureUrl:''};
+
+/* ---------- pure scoring (no browser APIs; unit-tested) ---------- */
+const NUM_MS={0:'kosong',1:'satu',2:'dua',3:'tiga',4:'empat',5:'lima',6:'enam',7:'tujuh',8:'lapan',9:'sembilan',10:'sepuluh',11:'sebelas',12:'dua belas'};
+function normWords(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/(\d+)/g,m=>' '+(NUM_MS[+m]||m)+' ').replace(/-/g,' ').replace(/[^a-z0-9\s]/g,' ')
+    .split(/\s+/).filter(Boolean);
+}
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+function wordSim(a,b){if(a===b)return 1;return 1-lev(a,b)/Math.max(a.length,b.length)}
+const credit=s=>s>=0.85?1:s>=0.6?0.5:0;
+/* Align target words to heard words in order (DP), so extra or missing words
+   don't shift everything. Returns per-target-word status. */
+function alignScore(target,heard){
+  const t=normWords(target),h=normWords(heard);const m=t.length,n=h.length;
+  const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.max(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]+credit(wordSim(t[i-1],h[j-1])));
+  const words=t.map(w=>({w,status:'miss'}));let i=m,j=n;
+  while(i>0&&j>0){const c=credit(wordSim(t[i-1],h[j-1]));
+    if(c>0&&dp[i][j]===dp[i-1][j-1]+c){words[i-1].status=c===1?'ok':'near';i--;j--}
+    else if(dp[i][j]===dp[i-1][j])i--;else j--}
+  const score=m?dp[m][n]/m:0;
+  // penalise lots of extra words only slightly (children add "um", repeats)
+  return {score,words,heard:h.join(' ')};
+}
+function scoreAttempt(target,alts){
+  let best={score:0,words:normWords(target).map(w=>({w,status:'miss'})),heard:''};
+  for(const a of (alts||[])){const r=alignScore(target,a);if(r.score>best.score)best=r}
+  // One-word targets: recognisers often spell short words differently (adek/adik), so 'nearly' earns 2 stars.
+  if(best.words.length===1&&best.words[0].status==='near')best.score=0.75;
+  const s=best.score;best.stars=s>=0.9?3:s>=0.7?2:s>=0.4?1:0;return best;
+}
+
+/* ---------- microphone ---------- */
+const Mic={
+  Rec:window.SpeechRecognition||window.webkitSpeechRecognition||null,
+  recBroken:false,recorderBroken:false,conflict:false,lastError:'',
+  active:null,
+  get recorderOK(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder)&&!this.recorderBroken},
+  get recogOK(){return !!this.Rec&&!this.recBroken},
+  mode(){return (S.settings&&S.settings.micMode)||'auto'}, // auto | recog | record | off
+  wantsRecog(){const m=this.mode();return (m==='auto'||m==='recog')&&this.recogOK},
+  wantsRecord(){const m=this.mode();return (m==='auto'&&!this.conflict||m==='record')&&this.recorderOK},
+  available(){return this.mode()!=='off'&&(this.wantsRecog()||this.wantsRecord()||!!PRON_CONFIG.azureUrl&&this.recorderOK)},
+  canScore(){return this.wantsRecog()||(!!PRON_CONFIG.azureUrl&&this.recorderOK)},
+  stop(){if(this.active)this.active.stop()},
+  /* Listen once. Resolves {alts, url, blob, noSpeech, error} */
+  listen(target){
+    return new Promise(async resolve=>{
+      const out={alts:[],url:null,blob:null,noSpeech:false,error:''};
+      let stream=null,recorder=null,chunks=[],rec=null,finished=false,recDone=!this.wantsRecog(),recorderDone=true;
+      const words=normWords(target).length;const maxMs=Math.min(14000,3500+words*900);
+      const finish=()=>{if(finished)return;if(!recDone||!recorderDone)return;finished=true;clearTimeout(timer);this.active=null;
+        if(stream)stream.getTracks().forEach(t=>t.stop());
+        if(chunks.length){out.blob=new Blob(chunks,{type:(recorder&&recorder.mimeType)||'audio/mp4'});out.url=URL.createObjectURL(out.blob)}
+        resolve(out)};
+      const stopAll=()=>{try{rec&&rec.stop()}catch(e){}try{recorder&&recorder.state!=='inactive'&&recorder.stop()}catch(e){}
+        if(!rec)recDone=true;if(!recorder)recorderDone=true;finish()};
+      this.active={stop:stopAll};
+      const timer=setTimeout(stopAll,maxMs);
+      if(this.wantsRecord()||(PRON_CONFIG.azureUrl&&this.recorderOK)){
+        try{stream=await navigator.mediaDevices.getUserMedia({audio:true});
+          recorder=new MediaRecorder(stream);recorderDone=false;
+          recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+          recorder.onstop=()=>{recorderDone=true;finish()};recorder.start()}
+        catch(e){this.recorderBroken=true;out.error=out.error||'recorder:'+(e.name||e);recorder=null;recorderDone=true}}
+      if(this.wantsRecog()){
+        try{rec=new this.Rec();rec.lang='ms-MY';rec.interimResults=false;rec.maxAlternatives=5;rec.continuous=false;
+          rec.onresult=e=>{for(const r of e.results)for(let k=0;k<r.length;k++)out.alts.push(r[k].transcript)};
+          rec.onerror=e=>{const er=e.error||'error';if(er!=='no-speech')this.lastError=er;
+            if(er==='no-speech')out.noSpeech=true;
+            else if(er==='not-allowed'||er==='service-not-allowed'||er==='language-not-supported'){this.recBroken=true;out.error=er}
+            else if(er==='audio-capture'&&recorder){this.conflict=true;out.error=er}
+            else out.error=er};
+          rec.onend=()=>{recDone=true;try{recorder&&recorder.state!=='inactive'&&recorder.stop()}catch(e){}finish()};
+          rec.start()}
+        catch(e){this.recBroken=true;out.error='recog:'+(e.name||e);recDone=true;rec=null}}
+      else recDone=true;
+      if(!rec&&!recorder){this.active=null;clearTimeout(timer);out.error=out.error||'unavailable';resolve(out)}
+    });
+  }
+};
+
+/* Optional server-side scoring (Azure helper), used when PRON_CONFIG.azureUrl is set */
+async function remoteScore(target,blob){
+  const r=await fetch(PRON_CONFIG.azureUrl+'?text='+encodeURIComponent(target)+'&lang=ms-MY',{method:'POST',body:blob,headers:{'Content-Type':blob.type||'audio/mp4'}});
+  if(!r.ok)throw new Error('score '+r.status);const j=await r.json();
+  return {stars:+j.stars||0,words:Array.isArray(j.words)?j.words:normWords(target).map(w=>({w,status:'miss'})),heard:String(j.heard||''),score:(+j.stars||0)/3};
+}
+
+/* ---------- stats ---------- */
+function logPron(target,res){
+  if(!S.pron)S.pron={log:[],words:{}};
+  S.pron.log.push({t:target,s:res.stars,d:todayStr()});if(S.pron.log.length>200)S.pron.log=S.pron.log.slice(-200);
+  for(const w of res.words){const r=S.pron.words[w.w]||(S.pron.words[w.w]={ok:0,near:0,miss:0});r[w.status]++;
+    if(WORDS[w.w])hit(w.w,w.status==='ok')}
+}
+function trickySounds(){if(!S.pron)return[];return Object.entries(S.pron.words).filter(([w,r])=>(r.near+r.miss)>=1&&(r.near+r.miss)>=r.ok*0.5)
+  .sort((a,b)=>(b[1].near+b[1].miss-b[1].ok)-(a[1].near+a[1].miss-a[1].ok)).map(([w])=>w)}
+
+/* ---------- the "speak & score" widget used by every speaking step ---------- */
+function micWidget(target,{onNext,nextLabel='Seterusnya →',ask='Giliran kamu! Tekan dan cakap.'}={}){
+  const st={phase:'idle',res:null,tries:0,url:null,msg:''};let audio=null;
+  const box=()=>document.getElementById('micbox');
+  const wordsHtml=res=>`<div class="mw-words">${res.words.map(x=>`<span class="mw-${x.status}">${esc(x.w)}</span>`).join(' ')}</div>`;
+  const fallback=()=>`<h2 style="text-align:center">${ask.replace('Tekan dan cakap.','Sebut dengan kuat.')}</h2>
+    <p class="en" style="text-align:center">${Mic.mode()==='off'?'Listening is switched off in the Parent corner.':IN_CLAUDE?'Listening works in the standalone (GitHub) version; inside Claude the microphone is blocked.':'This device can\'t listen here.'} Say it out loud, then pick a face.</p>
+    <div class="faces"><button data-act="mrate" data-v="2"><span>😀</span>Senang</button><button data-act="mrate" data-v="1"><span>🙂</span>Boleh</button><button data-act="mrate" data-v="0"><span>😕</span>Susah</button></div>`;
+  const inner=()=>{
+    if(!Mic.available())return fallback();
+    const micBtn=st.phase==='listening'
+      ?`<button class="mic on" data-act="mic" aria-label="Berhenti"><span>●</span></button><p class="mw-hint"><b>Saya sedang mendengar…</b><br><span class="small muted">Tekan sekali lagi bila sudah habis.</span></p>`
+      :`<button class="mic" data-act="mic" aria-label="Tekan dan cakap"><span>🎤</span></button><p class="mw-hint"><b>${st.tries?'Cuba lagi':'Tekan dan cakap'}</b></p>`;
+    let result='';
+    if(st.phase==='result'){const r=st.res;
+      if(r&&r.scored){
+        const near=r.words.filter(w=>w.status!=='ok').map(w=>w.w);
+        result=`<div class="mw-result col" style="gap:8px;align-items:center">${starStr(r.stars)}${wordsHtml(r)}
+          <p style="font-size:20px;font-weight:700;text-align:center">${esc(st.msg)}</p>
+          ${r.heard?`<p class="small muted">Saya dengar: “${esc(r.heard)}”</p>`:''}
+          ${near.length&&r.stars<3?`<div class="row" style="justify-content:center">${near.slice(0,3).map(w=>`<span class="opt">${say(w,'sm',0.6)} ${esc(w)}</span>`).join('')}</div>`:''}
+          <p class="en">Green = clear, amber = nearly, red = not heard. The iPad checks whether it understood him; it can't judge accent precisely.</p></div>`}
+      else if(r&&r.noSpeech){result=`<div class="tip" style="text-align:center">Saya tak dengar apa-apa. Cakap lebih kuat dan dekat dengan iPad. <span class="en">Nothing was heard. Speak louder and closer.</span></div>`}
+      else{result=`<div class="col" style="gap:8px;align-items:center"><p style="font-size:20px;font-weight:700">Dengar suara kamu, kemudian dengar contoh. Sama?</p><p class="en">Recording only (no automatic scoring on this device). Compare his voice with the model, then pick a face.</p>
+        <div class="faces" style="align-self:stretch"><button data-act="mrate" data-v="2"><span>😀</span>Sama!</button><button data-act="mrate" data-v="1"><span>🙂</span>Hampir</button><button data-act="mrate" data-v="0"><span>😕</span>Belum</button></div></div>`}}
+    const playRow=st.phase==='result'?`<div class="row" style="justify-content:center">${st.url?`<button class="btn ghost" data-act="mplay">▶ Suara saya</button>`:''}<button class="btn audio" data-act="say" data-t="${esc(target)}">🔊 Contoh</button></div>`:'';
+    const nextBtn=st.phase==='result'&&(st.res&&(st.res.scored||st.res.noSpeech))||st.tries>=3&&st.phase!=='listening'
+      ?`<div class="row" style="justify-content:center">${st.res&&st.res.scored&&st.res.stars>=2?`<button class="btn big" data-act="mnext">${nextLabel}</button>`:`<button class="btn ghost" data-act="mnext">Langkau →</button>`}</div>`:'';
+    return `<h2 style="text-align:center">${ask}</h2><div class="mw-center">${micBtn}</div>${result}${playRow}${nextBtn}`};
+  const render=()=>{const b=box();if(b)b.innerHTML=inner()};
+  H.mic=async()=>{
+    if(st.phase==='listening'){Mic.stop();return}
+    V.stop();if(audio){audio.pause();audio=null}
+    st.phase='listening';render();
+    const r=await Mic.listen(target);
+    if(st.url)URL.revokeObjectURL(st.url);st.url=r.url;st.tries++;
+    let res=null;
+    if(PRON_CONFIG.azureUrl&&r.blob){try{res=await remoteScore(target,r.blob);res.scored=true}catch(e){}}
+    if(!res&&r.alts.length){res=scoreAttempt(target,r.alts);res.scored=true}
+    if(!res&&r.noSpeech&&Mic.wantsRecog())res={noSpeech:true};
+    if(!res&&!r.url&&!Mic.available()){st.phase='idle';render();toast('Mic unavailable — switching to faces.');return}
+    if(!res)res={scored:false};
+    st.res=res;st.phase='result';
+    if(res.scored){logPron(target,res);save();
+      st.msg=res.stars===3?pick(['Hebat! Sebutan kamu jelas.','Syabas! Sangat jelas.','Pandai! Teruskan!']):res.stars===2?'Bagus! Hampir sempurna.':res.stars===1?'Cuba lagi. Dengar contoh dahulu.':'Mari cuba sekali lagi, perlahan-lahan.'}
+    render();
+    if(res.scored)V.speak(res.stars>=2?st.msg.split('!')[0]+'!':'Cuba lagi.',0.9);
+  };
+  H.mplay=()=>{if(!st.url)return;V.stop();audio=new Audio(st.url);audio.play().catch(()=>toast('Could not play the recording.'))};
+  H.mnext=()=>{if(audio)audio.pause();onNext&&onNext(st.res&&st.res.scored?st.res.stars:null,null)};
+  H.mrate=el=>{if(audio)audio.pause();onNext&&onNext(null,+el.dataset.v)};
+  return {html:()=>`<div id="micbox" class="card col micbox">${inner()}</div>`};
+}
+/* =========================================================
+   ENGINE
+   ========================================================= */
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.random()*a.length|0];
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------- state ---------- */
+const KEY='jomcakap.v1';
+const DEFAULT=()=>({profile:{name:'',age:7,family:{ayah:1,ibu:1,abang:0,kakak:0,adik:0,datuk:0,nenek:0,bayi:0},setup:false},
+  stars:{},words:{},book:[],streak:{last:null,count:0},days:{},today:{date:null},showEn:true,settings:{micMode:'auto'},pron:{log:[],words:{}},updatedAt:0});
+function hydrate(o){const d=DEFAULT();if(!o)return d;const r=Object.assign(d,o);r.profile=Object.assign(DEFAULT().profile,o.profile||{});r.profile.family=Object.assign(DEFAULT().profile.family,(o.profile||{}).family||{});r.settings=Object.assign(DEFAULT().settings,o.settings||{});r.pron=Object.assign(DEFAULT().pron,o.pron||{});return r}
+let S=(()=>{try{const r=localStorage.getItem(KEY);if(r)return hydrate(JSON.parse(r))}catch(e){}return DEFAULT()})();
+let saveT;
+function save(){S.updatedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}clearTimeout(saveT);saveT=setTimeout(syncUp,1200)}
+function today(){if(S.today.date!==todayStr())S.today={date:todayStr()};return S.today}
+function markActive(){const t=todayStr();S.days[t]=(S.days[t]||0)+1;if(S.streak.last!==t){const y=new Date();y.setDate(y.getDate()-1);const ys=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');S.streak.count=S.streak.last===ys?S.streak.count+1:1;S.streak.last=t}}
+function hit(w,ok){if(!w)return;const r=S.words[w]||(S.words[w]={ok:0,miss:0});ok?r.ok++:r.miss++}
+function weakWords(){return Object.entries(S.words).filter(([w,r])=>WORDS[w]&&r.miss>0&&r.miss*2>=r.ok).sort((a,b)=>(b[1].miss-b[1].ok)-(a[1].miss-a[1].ok)).map(([w])=>w)}
+const totalStars=()=>Object.values(S.stars).reduce((a,b)=>a+b,0);
+const fam=()=>S.profile.family;
+const famCount=()=>FAMILY_IDS.reduce((n,k)=>n+(+fam()[k]||0),0)+1; // + the child
+const childName=()=>S.profile.name.trim()||'Ali';
+
+/* ---------- cloud sync (private per viewer, falls back to this device) ---------- */
+let dbDoc=null;
+async function syncUp(){if(!dbDoc)return;try{await dbDoc.set({json:JSON.stringify(S),updatedAt:S.updatedAt})}catch(e){}}
+(async()=>{try{
+  if(!window.claude||!claude.use)return;
+  const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+  if(!db||!user)return;const id=await user.id();if(!id)return;
+  dbDoc=db.doc('data/users/'+id+'/state');
+  const snap=await dbDoc.get();
+  if(snap.exists){const d=snap.data();if(d&&d.json&&(d.updatedAt||0)>(S.updatedAt||0)){S=hydrate(JSON.parse(d.json));try{localStorage.setItem(KEY,d.json)}catch(e){}if(cur.s==='home'||cur.s==='parent'||cur.s==='unit')route()}}
+  else if(S.updatedAt)syncUp();
+}catch(e){}})();
+
+/* ---------- voice ---------- */
+const V={voice:null,kind:'none',
+  init(){const has='speechSynthesis' in window;const pickV=()=>{if(!has)return;const vs=speechSynthesis.getVoices();const ms=vs.filter(v=>/^ms([-_]|$)/i.test(v.lang));const id=vs.filter(v=>/^(id|in)([-_]|$)/i.test(v.lang));
+      this.voice=ms.find(v=>/amira/i.test(v.name))||ms[0]||id[0]||null;this.kind=ms.length?'ms':id.length?'id':'none'};
+    pickV();if(has&&speechSynthesis.addEventListener)speechSynthesis.addEventListener('voiceschanged',pickV)},
+  stop(){try{if('speechSynthesis' in window&&(speechSynthesis.speaking||speechSynthesis.pending))speechSynthesis.cancel()}catch(e){}},
+  speak(text,rate=0.85){return new Promise(res=>{if(!('speechSynthesis' in window)||!text)return res();this.stop();
+    const u=new SpeechSynthesisUtterance(text);u.lang=this.voice?this.voice.lang:'ms-MY';if(this.voice)u.voice=this.voice;u.rate=rate;
+    let done=false;const fin=()=>{if(!done){done=true;res()}};u.onend=fin;u.onerror=fin;setTimeout(fin,1800+text.length*120/rate);
+    try{speechSynthesis.speak(u)}catch(e){fin()}})}
+};
+V.init();
+async function sayBtn(el){el.classList.add('playing');await V.speak(el.dataset.t,+(el.dataset.rate||0.85));el.classList.remove('playing')}
+const say=(t,cls='',rate)=>`<button class="say ${cls}" data-act="say" data-t="${esc(t)}"${rate?` data-rate="${rate}"`:''} aria-label="Dengar">🔊</button>`;
+
+/* ---------- AI tutor (Claude, on the viewer's account) ---------- */
+let sampleP=null;
+function getSample(){if(!sampleP)sampleP=(window.claude&&claude.use)?claude.use('sample').catch(()=>null):Promise.resolve(null);return sampleP}
+function aiErr(e){const c=e&&e.code;if(c==='not_granted')return 'Cikgu AI needs your permission. Tap again and choose Allow (parents only).';if(c==='rate_limited')return 'Cikgu AI is busy. Wait a minute and try again.';if(c==='cancelled')return '';return 'Cikgu AI could not answer just now. Try again in a moment.'}
+
+/* ---------- router ---------- */
+let cur={s:'home'};let H={};
+function go(s,p={}){cur=Object.assign({s},p);route()}
+function route(){V.stop();H={};document.body.className=(S.showEn?'show-en':'')+(cur.s==='home'?' home':'');(SCREENS[cur.s]||SCREENS.home)(cur);window.scrollTo(0,0)}
+app.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t||!app.contains(t))return;const a=t.dataset.act;
+  if(a==='say'){sayBtn(t);return}
+  if(a==='go'){go(t.dataset.to,t.dataset.p?JSON.parse(t.dataset.p):{});return}
+  if(a==='en'){S.showEn=!S.showEn;document.body.classList.toggle('show-en',S.showEn);save();return}
+  if(H[a])H[a](t,e)});
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
+
+function bar(title,back='home',extra=''){return `<div class="bar">
+  ${back?`<button class="iconbtn" data-act="go" data-to="${back}" aria-label="Kembali">←</button>`:''}
+  <div class="title">${title}</div>${extra}
+  <button class="iconbtn toggle-en" data-act="en" aria-label="Show English hints" title="English hints for parents">EN</button></div>`}
+const starStr=n=>`<span class="stars" aria-label="${n} bintang">${'★'.repeat(n)}<span class="off">${'★'.repeat(3-n)}</span></span>`;
+const progressBar=(i,n)=>`<div class="progress" aria-hidden="true"><i style="width:${Math.round(i/n*100)}%"></i></div>`;
+function nextStage(){return STAGES.find(s=>!(S.stars[s.k]>0))||STAGES.slice().sort((a,b)=>(S.stars[a.k]||0)-(S.stars[b.k]||0))[0]}
+
+function finish(k,stars,extraHtml=''){
+  S.stars[k]=Math.max(S.stars[k]||0,stars);markActive();today().stage=true;save();
+  const idx=STAGES.findIndex(s=>s.k===k);const nx=STAGES[idx+1];
+  const praise=pick(PRAISE);
+  document.body.className=S.showEn?'show-en':'';
+  app.innerHTML=bar('',null)+`<div class="card celebrate col" style="align-items:center">
+    <div class="big">${['🌱','🌟','🏅','🏆'][stars]}</div>
+    <h1>${praise} ${esc(childName())}!</h1>
+    ${starStr(stars)}
+    <p class="en">${STAGES[idx]?STAGES[idx].en+' — done.':''} Stars show effort and accuracy; replay any time to earn more.</p>
+    ${extraHtml}
+    <div class="row" style="justify-content:center">
+      ${nx?`<button class="btn big" data-act="go" data-to="${nx.k}">Seterusnya: ${nx.nm} →</button>`:`<button class="btn big" data-act="go" data-to="unit">Lihat unit →</button>`}
+      <button class="btn ghost" data-act="go" data-to="home">Laman utama</button>
+    </div></div>`;
+  V.speak(praise+' '+childName()+'!');
+}
+
+/* =========================================================
+   SCREENS
+   ========================================================= */
+const SCREENS={};
+
+/* ---------- HOME ---------- */
+SCREENS.home=()=>{
+  const h=new Date().getHours();const g=h<11?['pagi','Good morning']:h<14?['tengah hari','Good afternoon']:h<19?['petang','Good afternoon']:['malam','Good evening'];
+  const greet=`Selamat ${g[0]}, ${childName()}!`;
+  const t=today();const nx=nextStage();
+  const items=[
+    {done:!!t.stage,to:nx.k,ms:`${nx.nm}`,en:`Next step in Unit 3: ${nx.en.toLowerCase()}`,ico:nx.ico},
+    {done:!!t.review,to:'ulang',ms:'Ulang kaji 6 perkataan',en:'Quick review of words he finds tricky',ico:'🔁'},
+    {done:!!t.ajar,to:'ajar',ms:'Jadi cikgu! Ajar ibu atau ayah',en:'He teaches you 3 words. You need no Malay.',ico:'🎓'}
+  ];
+  const nDone=items.filter(i=>i.done).length;
+  const book=S.book[S.book.length-1];
+  app.innerHTML=`
+  <div class="bar"><div class="title" style="font-size:26px">Jom Cakap</div>
+    <span class="pill" title="Days in a row">🔥 ${S.streak.count||0}</span>
+    <span class="pill" title="Stars">★ ${totalStars()}</span>
+    <button class="iconbtn toggle-en" data-act="en" aria-label="English hints">EN</button>
+    <button class="iconbtn" data-act="go" data-to="parent" aria-label="Parent corner" title="Parent corner">👪</button></div>
+  <div class="col">
+    ${!S.profile.setup?`<div class="card row" style="border:3px solid var(--sky)"><div class="grow col" style="gap:4px"><h3>Parents: a 1-minute set-up</h3><p class="small muted">Add his name and who is in your family. Every lesson then talks about <i>his</i> family, which makes the Malay stick.</p></div><button class="btn audio" data-act="go" data-to="parent">Set up</button></div>`:''}
+    <div class="hero">
+      <div class="col" style="gap:6px"><div class="row" style="gap:10px">${say(greet)}<h1 class="greet">${esc(greet)}</h1></div>
+        <p class="en">${g[1]}, ${esc(childName())}! Malay greetings change with the time of day.</p></div>
+      <button class="btn big warm" data-act="go" data-to="unit">Teruskan Unit 3 →</button>
+    </div>
+    <div class="card mission col">
+      <div class="row"><h2 class="grow">Misi Hari Ini</h2><span class="pill">${nDone} / 3</span></div>
+      <p class="en" style="margin-top:-8px">Today's mission: about 10–15 minutes.</p>
+      <ol>${items.map((it,i)=>`<li class="${it.done?'done':''}"><span class="tick">${it.done?'✓':i+1}</span><span style="font-size:26px">${it.ico}</span>
+        <div class="grow"><b style="font-size:20px">${it.ms}</b><div class="en">${it.en}</div></div>
+        <button class="btn ${it.done?'ghost':''}" data-act="go" data-to="${it.to}">${it.done?'Lagi':'Mula'}</button></li>`).join('')}</ol>
+    </div>
+    ${book?`<div class="card row"><span style="font-size:40px">📘</span><div class="grow"><h3>Buku Saya</h3><p class="small muted">${S.book.length} page${S.book.length>1?'s':''} written. Latest: “${esc(book.lines[book.lines.length-1]||'')}”</p></div><button class="btn ghost" data-act="go" data-to="book">Buka</button></div>`:''}
+    <div class="col" style="gap:10px"><h2>Darjah 1 · Tahun Ini</h2><p class="en" style="margin-top:-6px">Primary 1 units, in a typical school order. Unit 3 is ready to play; the others are planned.</p>
+      <div class="units">${UNITS.map(u=>`<button class="unit ${u.open?'open':'locked'}" ${u.open?'data-act="go" data-to="unit"':'disabled'}>
+        <span class="term">P${u.t}</span><span class="pic">${u.pic}</span><span class="num">${u.n}</span><span class="nm">${u.nm}</span>
+        ${u.open?`<span class="small muted">${STAGES.filter(s=>S.stars[s.k]).length}/${STAGES.length} langkah</span>`:'<span class="small muted">Akan datang</span>'}</button>`).join('')}</div></div>
+  </div>`;
+  app.querySelectorAll('.unit .term').forEach(el=>el.textContent='Penggal '+el.textContent.slice(1));
+};
+
+/* ---------- UNIT ---------- */
+SCREENS.unit=()=>{
+  const nx=nextStage();
+  app.innerHTML=bar('Unit 3 · Keluarga Saya')+`<div class="col">
+    <div class="card col" style="gap:8px">
+      <div class="row"><span style="font-size:48px">👨‍👩‍👧‍👦</span><div class="grow"><h2>Keluarga Saya</h2><p class="en">My Family</p></div>${starStr(Math.round(STAGES.reduce((a,s)=>a+(S.stars[s.k]||0),0)/STAGES.length))}</div>
+      <div class="arc"><b>Kata</b> → <b>Ayat</b> → <b>Cerita</b> → <b>Perbualan</b> → <b>Karangan</b></div>
+      <p class="en">Each unit climbs the same ladder: words → sentences → describing a picture → conversation → reading → writing his own page. The aim is for him to produce Malay, not just recognise it.</p>
+    </div>
+    <div class="ladder">${STAGES.map((s,i)=>`<button class="rung ${s.k===nx.k?'next':''}" data-act="go" data-to="${s.k}">
+      <span class="ico">${s.ico}</span><span class="grow col" style="gap:2px"><span class="step">Langkah ${i+1}</span><span class="nm">${s.nm}</span><span class="en">${s.en}</span>${starStr(S.stars[s.k]||0)}</span></button>`).join('')}</div>
+  </div>`;
+};
+
+/* ---------- 1. KENAL KATA ---------- */
+SCREENS.kata=()=>{
+  const groups=[["Keluarga","Family",["ayah","ibu","abang","kakak","adik","datuk","nenek","bayi","keluarga","rumah"]],["Perbuatan","Doing words",["membaca","memasak","bermain","menyiram","tidur","makan"]],["Perasaan","Feelings",["gembira","sayang"]]];
+  const seen=new Set();
+  const draw=()=>{app.innerHTML=bar('Kenal Kata','unit',`<span class="pill">${seen.size}/${KATA_SET.length}</span>`)+`<div class="col">
+    <p style="font-size:20px"><b>Tekan gambar. Dengar dan sebut.</b> <span class="en">Tap each picture, listen, and say it out loud. Pink letters are the syllables (suku kata) — P1 reading is taught syllable by syllable.</span></p>
+    ${groups.map(([g,ge,ws])=>`<h3>${g} <span class="en">${ge}</span></h3><div class="cards">${ws.map(w=>{const W=WORDS[w];return `<button class="wcard ${seen.has(w)?'seen':''}" data-act="card" data-w="${w}">
+      <span class="pic">${W.pic}</span><span class="w">${W.ms}</span><span class="syl">${W.syl.join(' · ')}</span><span class="en">${W.en}</span></button>`}).join('')}</div>`).join('')}
+    <div class="row" style="justify-content:center"><button class="btn big" data-act="done" ${seen.size<KATA_SET.length?'disabled':''}>Siap!</button></div>
+    ${seen.size<KATA_SET.length?`<p class="muted small" style="text-align:center">Tap all ${KATA_SET.length} cards to finish.</p>`:''}
+  </div>`};
+  H.card=async el=>{const w=el.dataset.w;const first=!seen.has(w);seen.add(w);if(first){el.classList.add('seen');const pill=app.querySelector('.bar .pill');if(pill)pill.textContent=seen.size+'/'+KATA_SET.length;if(seen.size===KATA_SET.length){const y=scrollY;draw();scrollTo(0,y)}}
+    el.classList.add('playing');await V.speak(WORDS[w].ms,0.8);await wait(250);await V.speak(WORDS[w].syl.join(' '),0.55);el.classList.remove('playing')};
+  H.done=()=>finish('kata',3);
+  draw();
+};
+
+/* ---------- quiz engine (listening + review) ---------- */
+function listenQuiz({key,title,back='unit',pool,n=10,onDone}){
+  const rounds=shuffle(pool).slice(0,n);let i=0,right=0,missed=false,locked=false;
+  const draw=()=>{const w=rounds[i];const others=shuffle(KATA_SET.filter(x=>x!==w&&WORDS[x].pic!==WORDS[w].pic)).slice(0,3);const opts=shuffle([w,...others]);
+    app.innerHTML=bar(title,back,`<span class="pill">${i+1}/${rounds.length}</span>`)+`<div class="col">
+      ${progressBar(i,rounds.length)}
+      <div class="card col" style="align-items:center;gap:10px"><p style="font-size:22px"><b>Dengar. Pilih gambar yang betul.</b></p><p class="en">Listen, then tap the matching picture.</p>
+        <div class="row"><button class="btn audio big" data-act="play">🔊 Dengar</button><button class="btn ghost" data-act="slow">🐢 Perlahan</button></div></div>
+      <div class="choices four">${opts.map(o=>`<button class="choice" data-act="pick" data-w="${o}"><span class="pic">${WORDS[o].pic}</span><span class="lbl" hidden>${WORDS[o].ms}</span></button>`).join('')}</div>
+    </div>`;missed=false;locked=false;V.speak(w,0.8)};
+  H.play=()=>V.speak(rounds[i],0.8);H.slow=()=>V.speak(rounds[i],0.5);
+  H.pick=async el=>{if(locked)return;const w=rounds[i];
+    if(el.dataset.w===w){locked=true;el.classList.add('right');el.querySelector('.lbl').hidden=false;if(!missed)right++;hit(w,!missed);
+      await V.speak(w,0.8);await wait(400);i++;if(i<rounds.length)draw();else{save();onDone(right,rounds.length)}}
+    else{el.classList.add('wrong');el.querySelector('.lbl').hidden=false;missed=true;V.speak('Cuba lagi. '+w,0.8)}};
+  draw();
+}
+SCREENS.dengar=()=>listenQuiz({key:'dengar',title:'Dengar & Pilih',pool:KATA_SET.filter(w=>w!=='keluarga'),n:10,
+  onDone:(r,n)=>finish('dengar',r>=9?3:r>=7?2:1,`<p style="font-size:20px">${r} / ${n} betul pada cubaan pertama</p><p class="en">${r} of ${n} right on the first try.</p>`)});
+SCREENS.ulang=()=>{let pool=weakWords();const seen=Object.keys(S.words).filter(w=>WORDS[w]);
+  if(pool.length<6)pool=pool.concat(shuffle((seen.length>=6?seen:KATA_SET).filter(w=>!pool.includes(w)))).slice(0,6);
+  listenQuiz({key:'ulang',title:'Ulang Kaji',back:'home',pool,n:6,onDone:(r,n)=>{today().review=true;markActive();save();
+    document.body.className=S.showEn?'show-en':'';
+    app.innerHTML=bar('',null)+`<div class="card celebrate col" style="align-items:center"><div class="big">🔁</div><h1>${pick(PRAISE)}</h1><p style="font-size:22px">${r} / ${n}</p><p class="en">Review done. Words he misses come back here until they stick.</p><button class="btn big" data-act="go" data-to="home">Laman utama</button></div>`;V.speak(pick(PRAISE))}})};
+
+/* ---------- 2. SEBUT ---------- */
+SCREENS.sebut=()=>{let i=0,hard=0;const scored=[];
+  const draw=()=>{const it=SEBUT_ITEMS[i];const W=it.w?WORDS[it.w]:null;const text=W?W.ms:it.s;
+    const big=W?`<div class="sylrow">${W.syl.map(s=>`<button data-act="syl" data-t="${s}">${s}</button>`).join('')}</div><div class="read" style="text-align:center">${W.pic} ${W.ms}</div><p class="en" style="text-align:center">${W.en}</p>`
+      :`<div class="read" style="text-align:center">${it.s.split(' ').map(x=>`<span class="word" data-act="word" data-t="${esc(x.replace(/[.,]/g,''))}">${esc(x)}</span>`).join(' ')}</div><p class="en" style="text-align:center">${it.en}</p>`;
+    app.innerHTML=bar('Sebut','unit',`<span class="pill">${i+1}/${SEBUT_ITEMS.length}</span>`)+`<div class="col">${progressBar(i,SEBUT_ITEMS.length)}
+      <div class="card col" style="align-items:center">${big}
+        <div class="row" style="justify-content:center"><button class="btn audio big" data-act="say" data-t="${esc(text)}">🔊 Dengar</button><button class="btn ghost" data-act="say" data-t="${esc(text)}" data-rate="0.5">🐢 Perlahan</button></div>
+        <div class="tip" style="align-self:stretch"><b>Tip sebutan</b> · ${esc(W?W.tip:it.tip)}</div></div>
+      ${micWidget(text,{onNext:advance}).html()}</div>`;
+    V.speak(text,0.8)};
+  H.syl=async el=>{el.classList.add('lit');await V.speak(el.dataset.t,0.6);el.classList.remove('lit')};
+  H.word=async el=>{el.classList.add('lit');await V.speak(el.dataset.t,0.7);el.classList.remove('lit')};
+  function advance(stars,rating){const it=SEBUT_ITEMS[i];const tough=stars!==null?stars<=1:rating===0;if(tough)hard++;
+    if(stars===null&&it.w)hit(it.w,rating>0);if(stars!==null)scored.push(stars);
+    if(tough)toast('Tidak mengapa! Kita cuba lagi nanti. (It will come back in review.)');
+    i++;if(i<SEBUT_ITEMS.length)draw();else{save();const avg=scored.length?scored.reduce((a,b)=>a+b,0)/scored.length:null;
+      finish('sebut',avg!==null?Math.max(1,Math.round(avg)):(hard<=2?3:2),`<p class="en">${avg!==null?`Average speaking score: ${avg.toFixed(1)} ★ over ${scored.length} tries. `:''}${hard} item${hard===1?' was':'s were'} tricky; they will come back in Ulang Kaji.</p>`)}}
+  draw();
+};
+
+/* ---------- 3. BINA AYAT ---------- */
+SCREENS.bina=()=>{let i=0,errors=0,tries=0,placed=[],tiles=[],state='';
+  const setup=()=>{const it=BINA[i];const toks=it.s.replace(/\.$/,'').split(' ');tiles=shuffle([...toks,...it.extra].map((t,k)=>({t,k})));placed=[];tries=0;state=''};
+  const target=()=>BINA[i].s.replace(/\.$/,'').split(' ');
+  const draw=()=>{const it=BINA[i];
+    app.innerHTML=bar('Bina Ayat','unit',`<span class="pill">${i+1}/${BINA.length}</span>`)+`<div class="col">${progressBar(i,BINA.length)}
+      <div class="card row" style="justify-content:center;gap:18px"><span style="font-size:72px">${it.pic}</span><div class="col" style="gap:6px"><p style="font-size:22px"><b>Susun perkataan menjadi ayat.</b></p><p class="en">Make the sentence: “${it.en}”</p><div class="row">${say(it.s)}<span class="muted small">Dengar ayat</span></div></div></div>
+      <div class="slot ${state}" aria-label="Ayat kamu">${placed.length?placed.map((p,j)=>`<button class="tile placed" data-act="unplace" data-j="${j}">${esc(p.t)}</button>`).join('')+(placed.length===target().length?'<span class="read">.</span>':''):'<span class="muted">Tekan perkataan di bawah…</span>'}</div>
+      <div class="tiles">${tiles.map(tl=>`<button class="tile ${placed.includes(tl)?'used':''}" data-act="place" data-k="${tl.k}">${esc(tl.t)}</button>`).join('')}</div>
+      <div class="row" style="justify-content:center">${state==='ok'?`<button class="btn big" data-act="next">Seterusnya →</button>`:`<button class="btn ghost" data-act="clear">Padam</button><button class="btn big" data-act="check" ${placed.length===target().length?'':'disabled'}>Semak</button>`}</div>
+      ${state==='reveal'?`<div class="tip"><b>Jawapan:</b> <span style="font-size:22px;font-weight:700">${esc(it.s)}</span> <span class="en">Look, listen, then build it again.</span></div>`:''}
+    </div>`};
+  H.place=el=>{if(state==='ok')return;const tl=tiles.find(t=>t.k==el.dataset.k);if(!tl||placed.includes(tl))return;placed.push(tl);V.speak(tl.t,0.85);if(state==='bad')state='';draw()};
+  H.unplace=el=>{if(state==='ok')return;placed.splice(+el.dataset.j,1);state=state==='reveal'?'reveal':'';draw()};
+  H.clear=()=>{placed=[];if(state!=='reveal')state='';draw()};
+  H.check=async()=>{const ok=placed.map(p=>p.t).join(' ')===target().join(' ');
+    if(ok){state='ok';draw();await V.speak(pick(PRAISE));await V.speak(BINA[i].s,0.85)}
+    else{errors++;tries++;state=tries>=2?'reveal':'bad';if(state==='reveal'){placed=[]};draw();V.speak(state==='reveal'?'Lihat jawapan. '+BINA[i].s:'Cuba lagi',0.85)}};
+  H.next=()=>{i++;if(i<BINA.length){setup();draw()}else finish('bina',errors<=1?3:errors<=4?2:1,`<p class="en">${errors} wrong attempt${errors===1?'':'s'} across ${BINA.length} sentences.</p>`)};
+  setup();draw();
+};
+
+/* ---------- 4. CERITA GAMBAR ---------- */
+function sceneSVG(active,done){
+  return `<svg viewBox="0 0 600 430" role="img" aria-label="Gambar keluarga Ali di rumah pada hari Ahad">
+  <style>.sk{fill:var(--sky-soft)}.wall{fill:var(--kunyit-soft)}.wall2{fill:var(--songket-soft)}.roof{fill:var(--songket)}.grass{fill:var(--pandan-soft)}.ln{stroke:var(--line);stroke-width:3;fill:none}.lab{fill:var(--ink);font:700 20px Andika,system-ui,sans-serif}.labbg{fill:var(--card)}</style>
+  <rect class="sk" x="0" y="0" width="600" height="430"/>
+  <polygon class="roof" points="20,60 300,6 580,60"/>
+  <rect class="wall" x="30" y="60" width="270" height="180"/><rect class="wall2" x="300" y="60" width="270" height="180"/>
+  <rect class="ln" x="30" y="60" width="540" height="180"/><line class="ln" x1="300" y1="60" x2="300" y2="240"/>
+  <rect class="grass" x="0" y="240" width="600" height="190"/>
+  <text x="70" y="215" font-size="50" text-anchor="middle">🛋️</text><text x="250" y="110" font-size="34" text-anchor="middle">🖼️</text>
+  <text x="530" y="200" font-size="50" text-anchor="middle">🍲</text><text x="360" y="110" font-size="32" text-anchor="middle">🪟</text>
+  <text x="560" y="330" font-size="70" text-anchor="middle">🌳</text><text x="330" y="405" font-size="30" text-anchor="middle">🌷🌷</text>
+  <text x="40" y="400" font-size="44" text-anchor="middle">🐈</text><rect class="labbg" x="18" y="10" width="150" height="34" rx="10"/><text class="lab" x="93" y="34" text-anchor="middle">☀️ Hari Ahad</text>
+  ${SCENE_PEOPLE.map((p,k)=>`<g class="who ${k===active?'active':''} ${done[k]?'done':''}" data-act="who" data-i="${k}" role="button" aria-label="Orang ${k+1}">
+    <circle class="halo" cx="${p.x}" cy="${p.y}" r="58"/>
+    <text x="${p.x}" y="${p.y+22}" font-size="66" text-anchor="middle">${p.pic}</text>
+    <text x="${p.x+46}" y="${p.y+34}" font-size="34" text-anchor="middle">${p.actPic}</text>
+    ${done[k]?`<rect class="labbg" x="${p.x-44}" y="${p.y+40}" width="88" height="28" rx="8"/><text class="lab" x="${p.x}" y="${p.y+61}" text-anchor="middle">${p.who}</text>`:''}
+  </g>`).join('')}</svg>`}
+SCREENS.cerita=()=>{let active=0,done=[],sel={},wrong=0,phase='build',feeling=null,hideText=false;
+  const sentence=k=>{const p=SCENE_PEOPLE[k];return `${p.who} sedang ${p.act} ${p.place}.`};
+  const OPEN='Pada hari Ahad, Ali dan keluarganya berada di rumah.';
+  const OC={};const optsFor=k=>{const p=SCENE_PEOPLE[k];if(!OC[k])OC[k]={
+      who:shuffle([p.who,...shuffle(SCENE_PEOPLE.filter(x=>x!==p)).slice(0,2).map(x=>x.who)]),
+      act:shuffle([p,...shuffle(SCENE_PEOPLE.filter(x=>x!==p)).slice(0,2)]).map(x=>({t:x.act,pic:x.actPic})),
+      place:PLACES};return OC[k]};
+  const drawBuild=()=>{const p=SCENE_PEOPLE[active];const o=optsFor(active);const s=sel;const complete=s.who&&s.act&&s.place;
+    app.innerHTML=bar('Cerita Gambar','unit',`<span class="pill">${done.filter(Boolean).length}/4</span>`)+`<div class="col">
+      <div class="scene-wrap">${sceneSVG(active,done)}</div>
+      <div class="card col"><div class="row"><h2 class="grow">Roda Cerita</h2><span class="muted small">Tekan orang dalam gambar</span></div>
+        <p class="en" style="margin-top:-8px">The Story Wheel. Every picture is described with the same questions: Who? Doing what? Where? (and at the end, how do they feel?). This pattern later grows into picture compositions.</p>
+        <div class="wheel">
+          <div class="wq"><h3>${say('Siapa?','sm')} Siapa? <span class="en">Who?</span></h3><div class="opts">${o.who.map(w=>`<button class="opt ${s.who===w?'sel':''}" data-act="ans" data-q="who" data-v="${esc(w)}">${w}</button>`).join('')}</div></div>
+          <div class="wq"><h3>${say('Buat apa?','sm')} Buat apa? <span class="en">Doing what?</span></h3><div class="opts">${o.act.map(a=>`<button class="opt ${s.act===a.t?'sel':''}" data-act="ans" data-q="act" data-v="${esc(a.t)}">${a.pic} ${a.t}</button>`).join('')}</div></div>
+          <div class="wq"><h3>${say('Di mana?','sm')} Di mana? <span class="en">Where?</span></h3><div class="opts">${o.place.map(a=>`<button class="opt ${s.place===a.t?'sel':''}" data-act="ans" data-q="place" data-v="${esc(a.t)}">${a.pic} ${a.t}</button>`).join('')}</div></div>
+        </div>
+        ${complete?`<div class="tip row" style="background:var(--pandan-soft)">${say(sentence(active))}<span class="grow" style="font-size:24px;font-weight:700">${sentence(active)}</span></div>
+          ${micWidget(sentence(active),{ask:'Sekarang sebut ayat ini.',nextLabel:'Orang seterusnya →',onNext:()=>H.said()}).html()}`:''}
+      </div></div>`};
+  H.who=el=>{const k=+el.dataset.i;if(k===active)return;active=k;sel=done[k]?{who:SCENE_PEOPLE[k].who,act:SCENE_PEOPLE[k].act,place:SCENE_PEOPLE[k].place}:{};drawBuild()};
+  H.ans=async el=>{const p=SCENE_PEOPLE[active];const q=el.dataset.q,v=el.dataset.v;const good={who:p.who,act:p.act,place:p.place}[q];
+    if(v===good){sel[q]=v;drawBuild();await V.speak(v,0.85);if(sel.who&&sel.act&&sel.place)V.speak(sentence(active),0.8)}
+    else{wrong++;el.classList.add('bad');V.speak('Lihat gambar. Cuba lagi.',0.85)}};
+  H.said=()=>{done[active]=true;const nx=SCENE_PEOPLE.findIndex((_,k)=>!done[k]);if(nx<0){phase='story';drawStory();return}active=nx;sel={};drawBuild();toast('Bagus! Tekan orang seterusnya.')};
+  const drawStory=()=>{const body=SCENE_PEOPLE.map((_,k)=>sentence(k));const close=feeling==='gembira'?'Mereka berasa sangat gembira.':null;
+    const lines=[['Permulaan','Beginning: when and where',[OPEN]],['Isi','Middle: who is doing what, where',body],['Penutup','Ending: how they feel',close?[close]:[]]];
+    app.innerHTML=bar('Cerita Penuh','unit')+`<div class="col">
+      <div class="scene-wrap">${sceneSVG(-1,[1,1,1,1])}</div>
+      ${!close?`<div class="card col"><h2>${say('Bagaimanakah perasaan mereka?')} Bagaimanakah perasaan mereka?</h2><p class="en">How do they feel? Look at their faces.</p>
+        <div class="opts row">${FEELINGS.map(f=>`<button class="opt" data-act="feel" data-v="${f.t}">${f.pic} ${f.t}</button>`).join('')}</div></div>`:''}
+      <div class="card col story ${hideText?'hidden-text':''}" id="story">
+        <div class="row"><h2 class="grow">Cerita Kita</h2>${close?`<button class="btn audio" data-act="readall">🔊 Dengar cerita</button>`:''}</div>
+        ${lines.map(([l,le,ls])=>`<div class="lbl">${l} <span class="en" style="text-transform:none;letter-spacing:0">· ${le}</span></div>${ls.map(t=>`<p data-line><span class="t">${esc(t)}</span></p>`).join('')||'<p class="muted small">Pilih perasaan di atas.</p>'}`).join('')}
+      </div>
+      ${close?`<div class="card col"><h2>Sekarang, ceritakan sendiri!</h2><p class="en">Now he tells the whole story himself. Hide the words and let him use only the picture. You don't need to understand Malay: listen for one sentence per person, and the opening and closing.</p>
+        <div class="row" style="justify-content:center"><button class="btn ghost" data-act="hide">${hideText?'Tunjuk perkataan':'Sembunyikan perkataan'}</button><button class="btn big" data-act="told">Saya sudah bercerita! ✓</button></div></div>`:''}
+    </div>`};
+  H.feel=async el=>{if(el.dataset.v==='gembira'){feeling='gembira';drawStory();await V.speak('Betul! Mereka berasa sangat gembira.')}else{wrong++;el.classList.add('bad');V.speak('Lihat muka mereka. Mereka senyum!',0.85)}};
+  H.readall=async el=>{const ps=[...app.querySelectorAll('#story [data-line]')];el.disabled=true;for(const p of ps){p.classList.add('lit');await V.speak(p.textContent,0.8);p.classList.remove('lit');await wait(200)}el.disabled=false};
+  H.hide=()=>{hideText=!hideText;drawStory()};
+  H.told=()=>finish('cerita',wrong<=2?3:wrong<=5?2:1,`<p class="en">He built a full picture description: opening, four “who-doing-where” sentences, and a feeling. That is the backbone of P1–P2 picture talk.</p>`);
+  drawBuild();
+};
+
+/* ---------- 5. MARI BERBUAL (guided) ---------- */
+function bualScript(){const f=fam();const n=childName();const cnt=famCount();
+  const members=FAMILY_IDS.filter(k=>f[k]>0);
+  return [
+    {q:`Selamat ${new Date().getHours()<12?'pagi':'petang'}! Siapakah nama kamu?`,en:'Hello! What is your name?',type:'one',opts:[{t:`Nama saya ${n}.`,pic:'🙋'}]},
+    {q:'Berapakah umur kamu?',en:'How old are you?',type:'one',opts:[5,6,7,8].map(a=>({t:`Saya berumur ${NUM[a]} tahun.`,pic:String(a),good:S.profile.setup?a===+S.profile.age:true}))},
+    {q:'Ada berapa orang dalam keluarga kamu?',en:'How many people are in your family?',type:'one',count:true,opts:[cnt-1,cnt,cnt+1].filter(x=>x>=2&&x<=12).map(x=>({t:`Ada ${NUM[x]} orang dalam keluarga saya.`,pic:String(x),good:x===cnt}))},
+    {q:'Siapakah ahli keluarga kamu?',en:'Who is in your family?',type:'multi',opts:FAMILY_IDS.map(k=>({k,t:k,pic:WORDS[k].pic})),pre:members},
+    {q:'Apakah yang kamu suka buat bersama keluarga?',en:'What do you like to do with your family?',type:'one',opts:WEEKEND.map(w=>({t:`Saya suka ${w[0]} bersama keluarga saya.`,pic:w[1],en:w[2]}))},
+    {q:'Mengapakah kamu sayang keluarga kamu?',en:'Why do you love your family?',type:'one',opts:[['mereka baik hati','😊'],['mereka menjaga saya','🤗'],['mereka selalu bermain dengan saya','🎲']].map(([x,p])=>({t:`Saya sayang keluarga saya kerana ${x}.`,pic:p}))}
+  ]}
+function listMs(arr){if(arr.length<=1)return arr.join('');return arr.slice(0,-1).join(', ')+' dan '+arr[arr.length-1]}
+SCREENS.bual=c=>{const steps=bualScript();let i=0,log=[],answered=false,challenge=!!c.challenge,revealed=false,multi=new Set(steps[3].pre),countHelp=false;
+  const avatar='🧕';
+  const draw=()=>{const st=steps[i];
+    const answerUI=()=>{if(answered)return micWidget(log[log.length-1].t,{ask:'Sekarang jawab dengan suara kamu.',onNext:()=>H.nextq()}).html();
+      if(challenge&&!revealed)return `<div class="card col" style="align-items:center;text-align:center"><p style="font-size:22px"><b>Jawab dengan suara kamu dahulu!</b></p><p class="en">Challenge mode: he answers aloud first, without choices. Then reveal the choices to check.</p><button class="btn warm big" data-act="reveal">Tunjuk pilihan</button></div>`;
+      if(st.type==='multi')return `<div class="answers">${st.opts.map(o=>`<button class="opt ${multi.has(o.k)?'sel':''}" data-act="toggle" data-k="${o.k}" style="font-size:22px">${o.pic} ${o.t}</button>`).join('')}</div><div class="row" style="justify-content:center"><button class="btn big" data-act="multidone" ${multi.size?'':'disabled'}>Jawab</button></div>`;
+      return `${countHelp?`<div class="tip">Mari kira bersama! <span style="font-size:30px">${FAMILY_IDS.flatMap(k=>Array(+fam()[k]||0).fill(WORDS[k].pic)).join(' ')} 🙋</span> <span class="en">Let's count together — don't forget yourself!</span></div>`:''}
+        <div class="answers">${st.opts.map((o,j)=>`<button class="opt" data-act="choose" data-j="${j}" style="font-size:21px;text-align:left"><span style="font-size:26px">${o.pic}</span> ${esc(o.t)}${o.en?` <span class="en">(${o.en})</span>`:''}</button>`).join('')}</div>`};
+    app.innerHTML=bar(challenge?'Berbual · Cabaran':'Mari Berbual','unit',`<span class="pill">${Math.min(i+1,steps.length)}/${steps.length}</span>`)+`<div class="col">
+      <div class="chat">${log.map(m=>`<div class="msg ${m.me?'me':''}"><span class="av">${m.me?'🙋':avatar}</span><div class="bub">${esc(m.t)}${m.en?`<div class="en">${esc(m.en)}</div>`:''}</div>${say(m.t,'sm')}</div>`).join('')}</div>
+      ${answerUI()}</div>`;
+    setTimeout(()=>{const last=app.querySelector('.chat .msg:last-child');if(last)last.scrollIntoView({block:'center',behavior:'smooth'})},30)};
+  const ask=async()=>{const st=steps[i];log.push({t:st.q,en:st.en});answered=false;revealed=false;countHelp=false;draw();await V.speak(st.q,0.85)};
+  const answer=async t=>{log.push({t,me:true});answered=true;draw();await V.speak(t,0.8)};
+  H.reveal=()=>{revealed=true;draw()};
+  H.choose=el=>{const o=steps[i].opts[+el.dataset.j];if(steps[i].count&&!o.good){el.classList.add('bad');countHelp=true;V.speak('Mari kira bersama!');setTimeout(draw,500);return}answer(o.t)};
+  H.toggle=el=>{const k=el.dataset.k;multi.has(k)?multi.delete(k):multi.add(k);el.classList.toggle('sel');V.speak(k);const b=app.querySelector('[data-act=multidone]');if(b)b.disabled=!multi.size};
+  H.multidone=()=>{const arr=FAMILY_IDS.filter(k=>multi.has(k));answer(`Ahli keluarga saya ialah ${listMs([...arr,'saya'])}.`)};
+  H.again=()=>V.speak(log[log.length-1].t,0.8);
+  H.nextq=async()=>{i++;if(i<steps.length){ask();return}
+    log.push({t:`Syabas, ${childName()}! Kamu pandai berbual.`,en:`Well done, ${childName()}! You are good at conversation.`});draw();await V.speak(log[log.length-1].t);
+    finish('bual',3,`<p class="en">${challenge?'Challenge round done: he answered before seeing choices.':'Next time try Challenge mode: he answers before the choices appear.'}</p>
+      <div class="row" style="justify-content:center"><button class="btn warm" data-act="go" data-to="bual" data-p='{"challenge":true}'>Cabaran 🏅</button>${IN_CLAUDE?`<button class="btn audio" data-act="go" data-to="ai">Berbual dengan Cikgu AI 💬</button>`:''}</div>`)};
+  ask();
+};
+
+/* ---------- Cikgu AI free chat ---------- */
+SCREENS.ai=()=>{const n=childName();const f=fam();const members=FAMILY_IDS.filter(k=>f[k]>0).map(k=>(f[k]>1?f[k]+' x ':'')+k).join(', ')||'not set';
+  const log=[{who:'cikgu',ms:`Hai ${n}! Cikgu Mira di sini. Ceritakan tentang keluarga kamu. Siapakah ahli keluarga kamu?`,en:`Hi ${n}! Teacher Mira here. Tell me about your family. Who is in your family?`,frame:'Ahli keluarga saya ialah ...'}];
+  let busy=false,err='';
+  const RULES=`You are "Cikgu Mira", a warm, patient Bahasa Melayu teacher chatting with a 6-7 year old Primary 1 child in Singapore. The child is a BEGINNER and does not speak Malay at home; a parent who speaks little Malay may be helping.
+Unit topic: Keluarga Saya (My Family). Child's name: ${n}. Child's family (from parent): ${members}.
+Rules:
+- Reply in very simple standard Malay (Singapore MOE primary style, Rumi spelling). At most 2 short sentences, P1 vocabulary only (keluarga, ayah, ibu, abang, kakak, adik, datuk, nenek, bayi, suka, sayang, bermain, makan, membaca, rumah, numbers satu..sepuluh, gembira, baik).
+- Praise effort warmly first (e.g. "Bagus!"), then ask exactly ONE simple question the child can answer with a short sentence.
+- If the child wrote in English, or the Malay has a mistake or is only a word, put the child's text in fix.said and the correct, complete simple Malay sentence in fix.better, with a one-line English tip for the parent in fix.why. If the child's Malay is fully correct, fix is null.
+- Stay on family / home life. If the child goes off topic, gently bring it back. Keep everything child-safe. Never say you are an AI.
+- frame: a Malay sentence starter that helps the child answer your question (e.g. "Saya suka ...").
+Return ONLY JSON: {"ms":"your reply in Malay","en":"English translation of ms","fix":null or {"said":"...","better":"...","why":"..."},"frame":"..."}`;
+  const draw=()=>{const last=log[log.length-1];
+    app.innerHTML=bar('Cikgu AI','unit')+`<div class="col">
+      <p class="en">Free conversation with an AI teacher. He can type in Malay, or in English if he's stuck, and Cikgu Mira shows the Malay way to say it. Uses your Claude account; you'll be asked to allow it the first time.</p>
+      <div class="chat">${log.map(m=>`<div class="msg ${m.who==='me'?'me':''}"><span class="av">${m.who==='me'?'🙋':'🧕'}</span><div class="bub">${esc(m.ms)}${m.en?`<div class="en">${esc(m.en)}</div>`:''}
+        ${m.fix&&m.fix.better?`<div class="fix">✨ Cara sebut: <b>${esc(m.fix.better)}</b> ${say(m.fix.better,'sm')}<div class="en">${esc(m.fix.why||'')}</div></div>`:''}</div>${m.who==='me'?'':say(m.ms,'sm')}</div>`).join('')}
+        ${busy?`<div class="msg"><span class="av">🧕</span><div class="bub muted">Cikgu sedang berfikir…</div></div>`:''}</div>
+      ${err?`<div class="notice">${esc(err)}</div>`:''}
+      <div class="card col" style="gap:10px">
+        ${last.frame?`<div class="row"><span class="muted small">Cuba mula dengan:</span><button class="opt" data-act="frame">${esc(last.frame)}</button></div>`:''}
+        <textarea id="ai-in" placeholder="Tulis jawapan kamu di sini…" aria-label="Jawapan kamu"></textarea>
+        <div class="row" style="justify-content:flex-end"><button class="btn big" data-act="send" ${busy?'disabled':''}>Hantar ➤</button></div></div></div>`;
+    const lastMsg=app.querySelector('.chat .msg:last-child');if(lastMsg)lastMsg.scrollIntoView({block:'center'})};
+  H.frame=()=>{const ta=document.getElementById('ai-in');const fr=log[log.length-1].frame.replace(/\s*\.\.\.\s*$/,' ').replace(/…$/,'');ta.value=fr;ta.focus()};
+  H.send=async()=>{const ta=document.getElementById('ai-in');const text=ta.value.trim();if(!text||busy)return;
+    log.push({who:'me',ms:text});busy=true;err='';draw();
+    const sample=await getSample();
+    if(!sample){busy=false;err='Cikgu AI only works when this page is opened inside Claude. The guided conversation (Mari Berbual) works everywhere.';draw();return}
+    const transcript=log.map(m=>(m.who==='me'?'Child: ':'Cikgu Mira: ')+m.ms).join('\n');
+    try{const r=await sample.json(RULES+'\n\nConversation so far:\n'+transcript+'\n\nWrite Cikgu Mira\'s next reply as JSON only.',{modelTier:'quick',cache:false});
+      const fix=r&&r.fix&&r.fix.better?r.fix:null;if(fix)log[log.length-1].fix=fix;
+      log.push({who:'cikgu',ms:String(r.ms||'Bagus!'),en:String(r.en||''),frame:r.frame?String(r.frame):''});busy=false;markActive();save();draw();
+      if(fix){await V.speak(fix.better,0.8);await wait(300)}V.speak(String(r.ms||''),0.85)}
+    catch(e){busy=false;err=aiErr(e);draw()}};
+  draw();V.speak(log[0].ms,0.85);
+};
+
+/* ---------- 6. BACA & FAHAM ---------- */
+SCREENS.baca=()=>{let phase='read',qi=0,right=0,missed=false,locked=false;
+  const drawRead=()=>{app.innerHTML=bar('Baca & Faham','unit')+`<div class="col">
+    <div class="card col story" id="story"><div class="row"><span style="font-size:52px">${STORY.pic}</span><h2 class="grow">${STORY.title}</h2><button class="btn audio" data-act="readall">🔊 Dengar cerita</button></div>
+      <p class="en">Tap any word to hear it. Read together: first listen, then he reads aloud on his own.</p>
+      ${STORY.lines.map(l=>`<p data-line data-t="${esc(l.t)}">${l.t.split(' ').map(w=>`<span class="word" data-act="w" data-t="${esc(w.replace(/[.,]/g,''))}">${esc(w)}</span>`).join(' ')}<span class="en" style="display:block;font-size:15px;font-weight:400">${l.en}</span></p>`).join('')}
+    </div>
+    <div class="card col"><h2 style="text-align:center">Baca sendiri dengan kuat</h2>${Mic.available()?`<p class="en" style="text-align:center">Now he reads it aloud, one sentence at a time. The iPad listens to each sentence.</p><div class="row" style="justify-content:center"><button class="btn big" data-act="aloud">🎤 Mula baca</button><button class="btn ghost" data-act="selfread">Langkau ke soalan</button></div></div></div>`:`<p class="en" style="text-align:center">Now he reads it aloud. How did it go?</p>
+      <div class="faces"><button data-act="selfread" data-v="2"><span>😀</span>Lancar</button><button data-act="selfread" data-v="1"><span>🙂</span>Boleh</button><button data-act="selfread" data-v="0"><span>😕</span>Susah</button></div></div></div>`}`};
+  H.w=async el=>{el.classList.add('lit');await V.speak(el.dataset.t,0.7);el.classList.remove('lit')};
+  H.readall=async el=>{el.disabled=true;for(const p of app.querySelectorAll('#story [data-line]')){p.classList.add('lit');await V.speak(p.dataset.t,0.8);p.classList.remove('lit');await wait(150)}el.disabled=false};
+  H.selfread=()=>{phase='q';drawQ()};
+  let li=0;const readStars=[];
+  const drawAloud=()=>{const l=STORY.lines[li];
+    app.innerHTML=bar('Baca Kuat','unit',`<span class="pill">${li+1}/${STORY.lines.length}</span>`)+`<div class="col">${progressBar(li,STORY.lines.length)}
+      <div class="card col" style="align-items:center;text-align:center"><span style="font-size:48px">${STORY.pic}</span>
+        <p class="read">${l.t.split(' ').map(w=>`<span class="word" data-act="w" data-t="${esc(w.replace(/[.,]/g,''))}">${esc(w)}</span>`).join(' ')}</p><p class="en">${l.en}</p></div>
+      ${micWidget(l.t,{ask:'Baca ayat ini dengan kuat.',onNext:st=>{if(st!==null)readStars.push(st);li++;if(li<STORY.lines.length)drawAloud();else{phase='q';
+        if(readStars.length)toast('Bacaan: purata '+(readStars.reduce((a,b)=>a+b,0)/readStars.length).toFixed(1)+' ★');drawQ()}}}).html()}</div>`};
+  H.aloud=()=>{li=0;drawAloud()};
+  const drawQ=()=>{const q=STORY.q[qi];
+    app.innerHTML=bar('Soalan','unit',`<span class="pill">${qi+1}/${STORY.q.length}</span>`)+`<div class="col">${progressBar(qi,STORY.q.length)}
+      <details class="card"><summary>📖 Lihat cerita semula</summary><div class="story">${STORY.lines.map(l=>`<p style="font-size:20px">${l.t}</p>`).join('')}</div></details>
+      <div class="card prompt">${say(q.q)}<div><p class="read" style="font-size:clamp(24px,4vw,34px)">${esc(q.q)}</p><p class="en">${q.en}</p></div></div>
+      <div class="choices four" style="grid-template-columns:repeat(${q.opts.length},minmax(0,1fr))">${q.opts.map((o,j)=>`<button class="choice" data-act="ansq" data-j="${j}"><span class="pic">${o[1]}</span>${o[0]}</button>`).join('')}</div></div>`;
+    missed=false;locked=false;V.speak(q.q,0.85)};
+  H.ansq=async el=>{if(locked)return;const q=STORY.q[qi];if(+el.dataset.j===q.a){locked=true;el.classList.add('right');if(!missed)right++;await V.speak(pick(PRAISE)+' '+q.opts[q.a][0]);await wait(300);qi++;if(qi<STORY.q.length)drawQ();else finish('baca',right>=5?3:right>=4?2:1,`<p style="font-size:20px">${right} / ${STORY.q.length} betul</p>`)}
+    else{missed=true;el.classList.add('wrong');V.speak('Cuba lagi. Baca cerita semula.',0.85)}};
+  drawRead();
+};
+
+/* ---------- 7. TULIS ---------- */
+function siblingsPhrase(){const f=fam();const parts=['abang','kakak','adik'].filter(k=>f[k]>0).map(k=>(f[k]==1?'seorang':NUM[f[k]]+' orang')+' '+k);return parts.length?listMs(parts):null}
+SCREENS.tulis=()=>{let phase='spell',si=0,errors=0,slots=[],tiles=[],state='';const words=shuffle(SPELL).slice(0,6);
+  const setupSpell=()=>{const w=WORDS[words[si]];const others=shuffle(SPELL.filter(x=>x!==words[si]).flatMap(x=>WORDS[x].syl).filter(s=>!w.syl.includes(s))).slice(0,2);
+    tiles=shuffle([...w.syl,...others].map((t,k)=>({t,k})));slots=[];state=''};
+  const drawSpell=()=>{const w=WORDS[words[si]];
+    app.innerHTML=bar('Tulis · Eja','unit',`<span class="pill">${si+1}/${words.length}</span>`)+`<div class="col">${progressBar(si,words.length)}
+      <div class="card row" style="justify-content:center;gap:20px"><span style="font-size:90px">${w.pic}</span><div class="col" style="gap:8px"><p style="font-size:22px"><b>Eja perkataan ini.</b></p><p class="en">Spell the word with syllable tiles: ${w.en}</p><div class="row">${say(w.ms)}<button class="btn ghost" data-act="say" data-t="${w.syl.join(' ')}" data-rate="0.5">🐢 Suku kata</button></div></div></div>
+      <div class="slot ${state}" style="justify-content:center">${w.syl.map((_,j)=>`<button class="tile placed syl" data-act="unslot" data-j="${j}" style="min-width:80px;${slots[j]?'':'opacity:.35'}">${slots[j]?esc(slots[j].t):'?'}</button>`).join('')}</div>
+      <div class="tiles">${tiles.map(tl=>`<button class="tile syl ${slots.includes(tl)?'used':''}" data-act="slot" data-k="${tl.k}">${esc(tl.t)}</button>`).join('')}</div>
+      ${state==='ok'?`<div class="tip" style="text-align:center"><b>Salin ke dalam buku tulis kamu:</b> <span class="read" style="font-size:30px">${w.ms}</span><div class="en">Have him copy the word into his exercise book. Handwriting is part of the P1 writing outcome.</div></div><div class="row" style="justify-content:center"><button class="btn big" data-act="nextspell">Seterusnya →</button></div>`:''}
+    </div>`};
+  H.slot=async el=>{if(state==='ok')return;const tl=tiles.find(t=>t.k==el.dataset.k);const w=WORDS[words[si]];if(slots.includes(tl))return;const j=slots.findIndex((x,ix)=>!x);const pos=j<0?slots.length:j;if(pos>=w.syl.length)return;slots[pos]=tl;V.speak(tl.t,0.6);
+    if(slots.filter(Boolean).length===w.syl.length){if(slots.map(s=>s.t).join('')===w.ms){state='ok';drawSpell();await wait(400);V.speak(pick(PRAISE)+' '+w.ms,0.8)}else{errors++;state='bad';drawSpell();V.speak('Cuba lagi',0.85);setTimeout(()=>{slots=[];state='';drawSpell()},900)}}else drawSpell()};
+  H.unslot=el=>{if(state==='ok')return;slots[+el.dataset.j]=undefined;drawSpell()};
+  H.nextspell=()=>{si++;if(si<words.length){setupSpell();drawSpell()}else{phase='comp';drawComp()}};
+
+  /* mini composition, personalised */
+  const f=fam();const cnt=famCount();const sib=siblingsPhrase();
+  const comp=[
+    {fixed:`Nama saya ${childName()}.`},
+    {fixed:`Saya berumur ${NUM[+S.profile.age]||'tujuh'} tahun.`},
+    {pre:'Ada',post:'orang dalam keluarga saya.',opts:[cnt-1,cnt,cnt+1].filter(x=>x>=2&&x<=12).map(x=>[NUM[x],String(x)]),good:NUM[cnt],en:'How many people, counting himself?'},
+    f.ayah>0?{pre:'Ayah saya seorang',post:'.',opts:JOBS.map(j=>[j[0],j[1],j[2]]),en:"What is Dad's job? (pick the real one)"}:null,
+    f.ibu>0?{pre:'Ibu saya seorang',post:'.',opts:JOBS.map(j=>[j[0],j[1],j[2]]),en:"What is Mum's job?"}:null,
+    sib?{fixed:`Saya ada ${sib}.`,note:'seorang = one (person). dua orang = two (people).'}:null,
+    {pre:'Pada hujung minggu, kami suka',post:'bersama-sama.',opts:WEEKEND.map(w=>[w[0],w[1],w[2]]),en:'What do you like to do together at the weekend?'},
+    {fixed:'Saya sayang keluarga saya.'}
+  ].filter(Boolean);
+  const pickd={};
+  const lineText=(c,k)=>c.fixed||(`${c.pre} ${pickd[k]||'___'}${c.post==='.'?'.':' '+c.post}`);
+  const drawComp=()=>{const ready=comp.every((c,k)=>c.fixed||pickd[k]);
+    app.innerHTML=bar('Tulis · Karangan Saya','unit')+`<div class="col">
+      <div class="card col" style="gap:6px"><h2>Keluarga Saya</h2><p class="en">His first mini-composition, about his real family. Choose the words together; he reads each sentence aloud.</p></div>
+      ${comp.map((c,k)=>`<div class="card col" style="gap:10px"><div class="row">${say(lineText(c,k).replace('___','...'),'sm')}<p class="grow" style="font-size:24px;font-weight:700">${esc(lineText(c,k))}</p></div>
+        ${c.note?`<p class="en">${c.note}</p>`:''}
+        ${c.opts?`<p class="en">${c.en||''}</p><div class="answers">${c.opts.map(o=>`<button class="opt ${pickd[k]===o[0]?'sel':''}" data-act="cpick" data-k="${k}" data-v="${esc(o[0])}">${o[1]} ${esc(o[0])}${o[2]?` <span class="en">(${o[2]})</span>`:''}</button>`).join('')}</div>`:''}</div>`).join('')}
+      <div class="row" style="justify-content:center"><button class="btn big warm" data-act="makebook" ${ready?'':'disabled'}>Jadikan buku saya 📘</button></div></div>`};
+  H.cpick=el=>{const k=+el.dataset.k,v=el.dataset.v;const c=comp[k];if(c.good&&v!==c.good){errors++;el.classList.add('bad');V.speak('Mari kira lagi. Jangan lupa diri kamu!',0.85);toast("Count again — don't forget himself!");return}
+    pickd[k]=v;const y=scrollY;drawComp();scrollTo(0,y);V.speak(lineText(c,k),0.8)};
+  H.makebook=()=>{const lines=comp.map((c,k)=>lineText(c,k));const d=todayStr();S.book=S.book.filter(b=>b.date!==d||b.title!=='Keluarga Saya');S.book.push({date:d,title:'Keluarga Saya',lines});save();
+    finish('tulis',errors<=2?3:errors<=5?2:1,`<div class="book" style="text-align:left;align-self:stretch"><h2>Keluarga Saya</h2>${lines.map(l=>`<p>${esc(l)}</p>`).join('')}</div>
+      <div class="row" style="justify-content:center"><button class="btn audio" data-act="go" data-to="book">Buka Buku Saya 📘</button></div>`)};
+  setupSpell();drawSpell();
+};
+
+/* ---------- BUKU SAYA (+ AI writing check) ---------- */
+SCREENS.book=()=>{const pages=S.book.slice().reverse();let res=null,busy=false,err='';
+  const draw=()=>{app.innerHTML=bar('Buku Saya','home')+`<div class="col">
+    ${pages.length?pages.map((b,ix)=>`<div class="book"><div class="row"><h2 class="grow">${esc(b.title)}</h2><button class="btn audio" data-act="readbook" data-ix="${ix}">🔊 Baca</button></div><p class="muted small" style="line-height:1.4">${esc(childName())} · ${esc(b.date)}</p>${b.lines.map(l=>`<p>${esc(l)}</p>`).join('')}</div>`).join('')
+      :`<div class="card"><p>Belum ada halaman. Finish <b>Tulis</b> in Unit 3 to write the first page.</p></div>`}
+    ${IN_CLAUDE?`<div class="card col"><h2>Tulis ayat sendiri ✏️</h2><p class="en">Stretch task: he writes one more sentence of his own (you can type what he says). Cikgu AI checks it and shows a corrected version.</p>
+      <textarea id="own" placeholder="Contoh: Abang saya suka membaca buku."></textarea>
+      <div class="row" style="justify-content:flex-end"><button class="btn big" data-act="check" ${busy?'disabled':''}>${busy?'Cikgu sedang menyemak…':'Semak'}</button></div>
+      ${err?`<div class="notice">${esc(err)}</div>`:''}
+      ${res?`<div class="${res.betul?'ok-note':'notice'} col" style="gap:6px"><p style="font-size:22px;font-weight:700">${esc(res.pujian||'')}</p>
+        ${res.ayat?`<div class="row">${say(res.ayat,'sm')}<b style="font-size:22px">${esc(res.ayat)}</b></div>`:''}<p class="small">${esc(res.tip||'')}</p>
+        ${res.ayat?`<button class="btn ghost" data-act="addline">Tambah ke buku saya</button>`:''}</div>`:''}
+    </div>`:''}</div>`};
+  H.readbook=async el=>{const b=pages[+el.dataset.ix];for(const l of b.lines){await V.speak(l,0.8);await wait(150)}};
+  H.check=async()=>{const t=document.getElementById('own').value.trim();if(!t)return;busy=true;err='';res=null;draw();document.getElementById('own').value=t;
+    const sample=await getSample();if(!sample){busy=false;err='The AI check only works when this page is opened inside Claude.';draw();document.getElementById('own').value=t;return}
+    try{const r=await sample.json(`You are a kind Malay teacher checking ONE sentence written by a 6-7 year old Primary 1 beginner in Singapore (does not speak Malay at home). Topic: family.
+Sentence: """${t}"""
+If it is English or has mistakes, give the simplest correct standard Malay version (Rumi spelling, P1 vocabulary) that keeps the child's meaning. Return ONLY JSON:
+{"betul": true|false, "ayat": "the correct full sentence (same as input if already correct), with capital letter and full stop", "pujian": "one short Malay praise for the child, e.g. 'Bagus! Ayat kamu betul.'", "tip": "one short English explanation for the parent of what was fixed, or what was good"}`,{modelTier:'default'});
+      res={betul:!!r.betul,ayat:String(r.ayat||''),pujian:String(r.pujian||''),tip:String(r.tip||'')};busy=false;draw();document.getElementById('own').value=t;if(res.ayat)V.speak((res.pujian||'')+' '+res.ayat,0.85)}
+    catch(e){busy=false;err=aiErr(e);draw();document.getElementById('own').value=t}};
+  H.addline=()=>{if(!res||!res.ayat)return;if(!S.book.length)S.book.push({date:todayStr(),title:'Keluarga Saya',lines:[]});const b=S.book[S.book.length-1];b.lines.splice(Math.max(0,b.lines.length-1),0,res.ayat);save();res=null;go('book')};
+  draw();
+};
+
+/* ---------- JADI CIKGU (teach-back, no Malay needed from parent) ---------- */
+SCREENS.ajar=()=>{const pool=(weakWords().length>=3?weakWords():shuffle(KATA_SET.filter(w=>w!=='keluarga'))).slice(0,3);let i=0,shown=false,score=0;
+  const draw=()=>{const w=WORDS[pool[i]];
+    app.innerHTML=bar('Jadi Cikgu','home',`<span class="pill">${i+1}/3</span>`)+`<div class="col">
+      <div class="card col" style="gap:6px"><h2>${esc(childName())} jadi cikgu hari ini!</h2><p class="en" style="display:block">For the parent: point at the picture and ask “What is this in Malay?”. Let him answer first, then tap Reveal to check. Ask him to teach you how to say it.</p></div>
+      <div class="card col" style="align-items:center"><span style="font-size:120px;line-height:1.1">${w.pic}</span>
+        ${shown?`<div class="read">${w.ms}</div><div class="row">${say(w.ms)}<span class="muted">${w.en}</span></div>
+          <p class="small muted">Did he get it?</p><div class="row"><button class="btn" data-act="mark" data-v="1">✓ Betul</button><button class="btn ghost" data-act="mark" data-v="0">✗ Belum lagi</button></div>`
+        :`<button class="btn big warm" data-act="show">Reveal / Tunjuk</button>`}</div></div>`};
+  H.show=()=>{shown=true;draw();V.speak(WORDS[pool[i]].ms,0.8)};
+  H.mark=el=>{const ok=el.dataset.v==='1';if(ok)score++;hit(pool[i],ok);i++;shown=false;if(i<3)draw();else{today().ajar=true;markActive();save();
+    app.innerHTML=bar('',null)+`<div class="card celebrate col" style="align-items:center"><div class="big">🎓</div><h1>Terima kasih, Cikgu ${esc(childName())}!</h1><p style="font-size:22px">${score} / 3</p><p class="en" style="display:block">Teaching someone else is one of the strongest ways to remember. Missed words go into review automatically.</p><button class="btn big" data-act="go" data-to="home">Laman utama</button></div>`;V.speak('Terima kasih, cikgu!')}};
+  draw();
+};
+
+/* ---------- PARENT CORNER ---------- */
+function micStatus(){
+  const rows=[];
+  if(IN_CLAUDE)rows.push(`<div class="notice">Inside Claude the microphone is blocked, so lessons use faces for self-rating. Use the standalone version (GitHub Pages) on the iPad to have the app listen to him.</div>`);
+  else{const rec=!!Mic.Rec,rc=!!(navigator.mediaDevices&&window.MediaRecorder);
+    rows.push(`<div class="${rec?'ok-note':'notice'}">${rec?'✓ Speech recognition is available in this browser.':'✗ This browser has no speech recognition, so there is no automatic score. Use Safari on the iPad.'}<br>${rc?'✓ Recording is available, so he can play his own voice back.':'✗ Recording is not available here.'}${Mic.lastError?`<br><span class="small">Last listening error: <b>${esc(Mic.lastError)}</b>${/not-allowed/.test(Mic.lastError)?' (microphone or speech service not allowed; see set-up below)':Mic.lastError==='language-not-supported'?' (Malay recognition not available on this device; see set-up below)':''}</span>`:''}</div>`)}
+  return rows.join('')}
+function pronSummary(){const log=(S.pron&&S.pron.log)||[];if(!log.length)return '<p class="small muted">No speaking scores yet. They appear after he uses the 🎤 button.</p>';
+  const recent=log.slice(-20);const avg=recent.reduce((a,b)=>a+b.s,0)/recent.length;const tricky=trickySounds().slice(0,8);
+  return `<h3>Speaking scores</h3><div class="row"><span class="pill">🎤 ${log.length} tries</span><span class="pill">★ ${avg.toFixed(1)} average (last ${recent.length})</span></div>
+    ${tricky.length?`<p class="small muted">Words the iPad struggled to understand. Practise these together:</p><div class="row">${tricky.map(w=>`<span class="opt">${esc(w)} ${say(w,'sm',0.6)}</span>`).join('')}</div>`:''}`}
+SCREENS.parent=()=>{const p=S.profile;const draft={name:p.name,age:p.age,family:Object.assign({},p.family)};let confirmReset=false;
+  const draw=()=>{drawInner();wire()};
+  const drawInner=()=>{
+    const skillPct=sk=>Math.round(sk.stages.reduce((a,k)=>a+(S.stars[k]||0),0)/(sk.stages.length*3)*100);
+    const last7=[...Array(7)].map((_,k)=>{const d=new Date();d.setDate(d.getDate()-k);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}).filter(d=>S.days[d]).length;
+    const weak=weakWords().slice(0,10);
+    const voiceNote=V.kind==='ms'?`<div class="ok-note">Malay voice found: <b>${esc(V.voice.name)}</b>. Audio will sound natural.</div>`
+      :V.kind==='id'?`<div class="notice">Using an <b>Indonesian</b> voice (${esc(V.voice.name)}). It is close, but some words sound different from Malay. On iPad, add the Malay voice: <b>Settings → Accessibility → Spoken Content → Voices → Malay</b>, download it, then reopen this page.</div>`
+      :`<div class="notice">No Malay voice found on this device, so audio may sound wrong or be silent. On iPad: <b>Settings → Accessibility → Spoken Content → Voices → Malay</b>, download the voice, then reopen this page.</div>`;
+    app.innerHTML=bar('Sudut Ibu Bapa · Parent corner','home')+`<div class="col">
+      <div class="card col"><h2>Your child</h2>
+        <div class="row"><label class="grow col" style="gap:4px;min-width:200px"><span class="small muted">Name (used in every lesson)</span><input type="text" id="p-name" value="${esc(draft.name)}" placeholder="e.g. Adam" autocomplete="off"></label>
+          <label class="col" style="gap:4px;width:140px"><span class="small muted">Age</span><select id="p-age">${[5,6,7,8].map(a=>`<option ${+draft.age===a?'selected':''}>${a}</option>`).join('')}</select></label></div>
+        <div class="col" style="gap:6px"><span class="small muted">Who else is in the family? (not counting him)</span>
+          <div class="fam">${FAMILY_IDS.map(k=>`<div class="fm"><span style="font-size:24px">${WORDS[k].pic}</span><span>${k}<span class="en" style="display:block;font-size:12px">${WORDS[k].en}</span></span>
+            <span class="stepper"><button data-act="dec" data-k="${k}" aria-label="Kurang ${k}">−</button><output>${draft.family[k]||0}</output><button data-act="inc" data-k="${k}" aria-label="Tambah ${k}">+</button></span></div>`).join('')}</div>
+          <p class="small muted">Family size including him: <b>${FAMILY_IDS.reduce((n,k)=>n+(+draft.family[k]||0),0)+1}</b>. Used to check answers like “Ada lima orang dalam keluarga saya”.</p></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn" data-act="saveprof">Save</button></div></div>
+
+      <div class="card col"><h2>Sound check</h2>${voiceNote}<div class="row"><button class="btn audio" data-act="say" data-t="Selamat datang ke Jom Cakap. Saya sayang keluarga saya.">🔊 Test the voice</button></div>
+        <p class="small muted">The <b>EN</b> button (top right) shows or hides English hints. Keep it on while you sit with him; switch it off when he practises alone so he relies on pictures and sound.</p></div>
+
+      <div class="card col"><h2>Listening & pronunciation</h2>
+        ${micStatus()}
+        <label class="col" style="gap:4px;max-width:420px"><span class="small muted">Listening mode</span><select id="p-mic">
+          ${[['auto','Listen and record (recommended)'],['recog','Listen only (no recording)'],['record','Record only (no automatic score)'],['off','Off: use faces instead']].map(([v,t])=>`<option value="${v}" ${Mic.mode()===v?'selected':''}>${t}</option>`).join('')}</select></label>
+        <p class="small muted">Try “Listen only” if the mic test keeps failing; some iPads can't record and recognise at the same time.</p>
+        ${micWidget('Saya sayang keluarga saya.',{ask:'Mic test: say “Saya sayang keluarga saya.”',nextLabel:'Done',onNext:()=>{toast('Mic test finished.');go('parent')}}).html()}
+        <details><summary>iPad set-up for listening</summary><ul class="tips small" style="margin-top:8px">
+          <li>Open the app in <b>Safari</b>. When it asks to use the microphone, tap <b>Allow</b>.</li>
+          <li>Turn on dictation: <b>Settings → General → Keyboard → Enable Dictation</b>. Safari's listening uses Apple's speech service.</li>
+          <li>If the test says the speech service isn't allowed, turn on <b>Siri</b> in Settings, then reload the page.</li>
+          <li>If it hears English words instead of Malay, add a Malay keyboard (<b>Settings → General → Keyboard → Keyboards → Add New Keyboard → Malay</b>) so Malay dictation is available.</li>
+          <li>If it still doesn't work from the Home Screen icon, open the same address in Safari itself.</li>
+        </ul></details></div>
+
+      <div class="card col"><h2>Progress</h2>
+        <div class="row"><span class="pill">🔥 ${S.streak.count||0}-day streak</span><span class="pill">📅 ${last7}/7 days this week</span><span class="pill">★ ${totalStars()} stars</span></div>
+        <div class="col" style="gap:10px">${SKILLS.map(sk=>`<div class="skill"><span><b>${sk.nm}</b><br><span class="small muted">${sk.en}</span></span>${progressBar(skillPct(sk),100)}<span class="small" style="font-variant-numeric:tabular-nums">${skillPct(sk)}%</span></div>`).join('')}</div>
+        <p class="small muted">These five match the MOE P1 learning outcomes: listening, speaking, spoken interaction, reading and writing.</p>
+        ${pronSummary()}
+        <h3>Words to practise</h3>
+        ${weak.length?`<div class="row">${weak.map(w=>`<span class="opt">${WORDS[w].pic} ${w} ${say(w,'sm')}</span>`).join('')}</div>`:'<p class="small muted">None yet. Words he misses or marks “Susah” appear here and in Ulang Kaji.</p>'}</div>
+
+      <div class="card col"><h2>Helping when you don't speak Malay</h2>
+        <ul class="tips">
+          <li><b>Let him be the teacher.</b> The daily “Jadi Cikgu” mission shows you a picture and the answer. Ask him first, then check.</li>
+          <li><b>Use the Story Wheel in English.</b> At dinner, point at someone: “Siapa? Buat apa? Di mana?” He answers in Malay; he will often know more than you think.</li>
+          <li><b>Little and often.</b> 10–15 minutes a day beats an hour on Saturday. The streak counter is there for this.</li>
+          <li><b>Praise the attempt, not the accent.</b> Speaking confidence is the hardest part for non-Malay-speaking children; mistakes are how he learns.</li>
+          <li><b>Hear it, then say it.</b> Every Malay word here has a 🔊 button. Ask him to repeat after the voice, then let him say it before tapping.</li>
+          <li><b>Copy by hand.</b> When Tulis says “Salin ke dalam buku tulis”, have him write it in a real exercise book.</li>
+        </ul></div>
+
+      <details class="card"><summary>Where this is heading</summary>
+        <div class="col" style="gap:10px;margin-top:8px"><p class="small">Each unit repeats the same climb, so by the end of P1 he can do each step for any topic:</p>
+        <div class="journey">
+          <div><b>Kata</b><span class="small">Hear, say and read the unit's words, syllable by syllable.</span></div>
+          <div><b>Ayat</b><span class="small">Build sentences from patterns: Ini…, … sedang …, Saya suka …</span></div>
+          <div><b>Cerita</b><span class="small">Describe a picture: who, doing what, where, feeling. Later: picture compositions.</span></div>
+          <div><b>Perbualan</b><span class="small">Answer and ask questions about himself. Later: oral conversation exams.</span></div>
+          <div><b>Faham</b><span class="small">Read a short text and answer questions.</span></div>
+          <div><b>Karangan</b><span class="small">Write a personal page about himself. Later: full compositions.</span></div>
+        </div>
+        <p class="small muted">Unit order follows one school's published P1 scheme of work; schools differ slightly.</p></div></details>
+
+      <div class="card col"><h2>Data</h2><p class="small muted">${IN_CLAUDE?"Progress is saved privately to your Claude account when you're signed in, and on this device.":'Progress is saved on this iPad, in this browser. Make a backup now and then: clearing Safari history erases it.'}</p>
+        ${IN_CLAUDE?'':`<div class="row"><button class="btn ghost" data-act="export">⬇ Save backup file</button><label class="btn ghost" for="p-import">⬆ Restore from backup</label><input type="file" id="p-import" accept="application/json,.json" hidden></div>`}
+        <div class="row">${confirmReset?`<span class="grow">Erase all progress, stars and book pages?</span><button class="btn ghost" data-act="cancelreset">Keep</button><button class="btn" style="background:var(--songket)" data-act="doreset">Erase</button>`:`<button class="btn ghost" data-act="askreset">Reset progress…</button>`}</div></div>
+    </div>`};
+  const wire=()=>{const m=document.getElementById('p-mic');if(m)m.onchange=e=>{readForm();S.settings.micMode=e.target.value;Mic.recBroken=false;Mic.recorderBroken=false;Mic.conflict=false;save();draw()};
+    const f=document.getElementById('p-import');if(f)f.onchange=e=>{const file=e.target.files[0];if(!file)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);if(!o||!o.profile)throw 0;S=hydrate(o);save();toast('Backup restored.');go('home')}catch(err){toast('That file is not a Jom Cakap backup.')}};rd.readAsText(file)}};
+  H.export=()=>{const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='jom-cakap-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)};
+  const readForm=()=>{const n=document.getElementById('p-name');const a=document.getElementById('p-age');if(n)draft.name=n.value;if(a)draft.age=+a.value};
+  H.inc=el=>{readForm();const k=el.dataset.k;draft.family[k]=Math.min(5,(+draft.family[k]||0)+1);draw()};
+  H.dec=el=>{readForm();const k=el.dataset.k;draft.family[k]=Math.max(0,(+draft.family[k]||0)-1);draw()};
+  H.saveprof=()=>{readForm();S.profile.name=draft.name.trim().slice(0,30);S.profile.age=draft.age;S.profile.family=Object.assign({},draft.family);S.profile.setup=true;save();toast('Saved. Lessons now use '+(S.profile.name||'his')+' family.');go('home')};
+  H.askreset=()=>{readForm();confirmReset=true;draw()};H.cancelreset=()=>{confirmReset=false;draw()};
+  H.doreset=()=>{const prof=S.profile;S=DEFAULT();S.profile=prof;save();toast('Progress erased.');go('home')};
+  draw();
+};
+
+/* ---------- boot ---------- */
+route();
+</script>
+
+</body>
+</html>
