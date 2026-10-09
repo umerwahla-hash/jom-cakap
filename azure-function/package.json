@@ -1,0 +1,8 @@
+{
+  "name": "jom-cakap-score",
+  "version": "1.0.0",
+  "description": "Scores a child's Malay pronunciation with Azure Speech pronunciation assessment, for the Jom Cakap app",
+  "main": "src/functions/*.js",
+  "scripts": { "start": "func start" },
+  "dependencies": { "@azure/functions": "^4.5.0" }
+}

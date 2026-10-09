@@ -385,11 +385,10 @@ const PRAISE=["Syabas!","Bagus!","Hebat!","Pandai!","Betul!"];
    ========================================================= */
 const IN_CLAUDE=!!(window.claude&&window.claude.use);
 
-/* Later: set this to the URL of the small Azure helper (see README).
-   When set, each recording is POSTed there and its pronunciation scores
-   replace the basic on-iPad score. Expected reply:
-   {stars:0-3, words:[{w:"ayah", status:"ok"|"near"|"miss"}], heard:"..."} */
-const PRON_CONFIG={azureUrl:''};
+/* Azure pronunciation scoring: the parent pastes the helper's address in the
+   Parent corner (kept on this device only, never in the public code).
+   Expected reply: {stars:0-3, words:[{w, status:"ok"|"near"|"miss", score}], heard, scores:{pron,accuracy,fluency,completeness}} */
+const PRON_CONFIG={get azureUrl(){return (typeof S!=='undefined'&&S.settings&&S.settings.azureUrl)||''}};
 
 /* ---------- pure scoring (no browser APIs; unit-tested) ---------- */
 const NUM_MS={0:'kosong',1:'satu',2:'dua',3:'tiga',4:'empat',5:'lima',6:'enam',7:'tujuh',8:'lapan',9:'sembilan',10:'sepuluh',11:'sebelas',12:'dua belas'};
@@ -475,10 +474,31 @@ const Mic={
 };
 
 /* Optional server-side scoring (Azure helper), used when PRON_CONFIG.azureUrl is set */
+/* Convert any recording Safari makes (mp4/aac) to 16 kHz mono 16-bit WAV, the format Azure's short-audio API wants */
+async function toWav16k(blob){
+  const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();
+  try{const buf=await new Promise((res,rej)=>{blob.arrayBuffer().then(ab=>{const p=ac.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)},rej)});
+    const rate=16000,len=Math.max(1,Math.ceil(buf.duration*rate));
+    const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;const oc=new OAC(1,len,rate);
+    const src=oc.createBufferSource();src.buffer=buf;src.connect(oc.destination);src.start(0);
+    const out=await new Promise((res,rej)=>{const p=oc.startRendering();if(p&&p.then)p.then(res,rej);else oc.oncomplete=e=>res(e.renderedBuffer)});
+    const d=out.getChannelData(0);const ab=new ArrayBuffer(44+d.length*2);const v=new DataView(ab);
+    const w=(o,str)=>{for(let i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i))};
+    w(0,'RIFF');v.setUint32(4,36+d.length*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+    v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,d.length*2,true);
+    for(let i=0;i<d.length;i++){const x=Math.max(-1,Math.min(1,d[i]));v.setInt16(44+i*2,x<0?x*0x8000:x*0x7fff,true)}
+    return new Blob([ab],{type:'audio/wav'});
+  }finally{try{ac.close()}catch(e){}}
+}
 async function remoteScore(target,blob){
-  const r=await fetch(PRON_CONFIG.azureUrl+'?text='+encodeURIComponent(target)+'&lang=ms-MY',{method:'POST',body:blob,headers:{'Content-Type':blob.type||'audio/mp4'}});
-  if(!r.ok)throw new Error('score '+r.status);const j=await r.json();
-  return {stars:+j.stars||0,words:Array.isArray(j.words)?j.words:normWords(target).map(w=>({w,status:'miss'})),heard:String(j.heard||''),score:(+j.stars||0)/3};
+  const wav=await toWav16k(blob);const base=PRON_CONFIG.azureUrl;
+  const url=base+(base.includes('?')?'&':'?')+'text='+encodeURIComponent(target)+'&lang=ms-MY';
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),15000);
+  try{const r=await fetch(url,{method:'POST',body:wav,headers:{'Content-Type':'audio/wav'},signal:ctl.signal});
+    if(!r.ok)throw new Error('score '+r.status);const j=await r.json();if(j.error)throw new Error(j.error);
+    return {stars:Math.max(0,Math.min(3,+j.stars||0)),words:Array.isArray(j.words)&&j.words.length?j.words:normWords(target).map(w=>({w,status:'miss'})),
+      heard:String(j.heard||''),scores:j.scores||null,score:(+j.stars||0)/3,azure:true};
+  }finally{clearTimeout(t)}
 }
 
 /* ---------- stats ---------- */
@@ -501,6 +521,7 @@ function micWidget(target,{onNext,nextLabel='Seterusnya →',ask='Giliran kamu! 
     <div class="faces"><button data-act="mrate" data-v="2"><span>😀</span>Senang</button><button data-act="mrate" data-v="1"><span>🙂</span>Boleh</button><button data-act="mrate" data-v="0"><span>😕</span>Susah</button></div>`;
   const inner=()=>{
     if(!Mic.available())return fallback();
+    if(st.phase==='scoring')return `<h2 style="text-align:center">${ask}</h2><div class="mw-center"><div class="mic on" aria-hidden="true"><span>⏳</span></div><p class="mw-hint"><b>Cikgu sedang menyemak…</b></p></div>`;
     const micBtn=st.phase==='listening'
       ?`<button class="mic on" data-act="mic" aria-label="Berhenti"><span>●</span></button><p class="mw-hint"><b>Saya sedang mendengar…</b><br><span class="small muted">Tekan sekali lagi bila sudah habis.</span></p>`
       :`<button class="mic" data-act="mic" aria-label="Tekan dan cakap"><span>🎤</span></button><p class="mw-hint"><b>${st.tries?'Cuba lagi':'Tekan dan cakap'}</b></p>`;
@@ -511,8 +532,9 @@ function micWidget(target,{onNext,nextLabel='Seterusnya →',ask='Giliran kamu! 
         result=`<div class="mw-result col" style="gap:8px;align-items:center">${starStr(r.stars)}${wordsHtml(r)}
           <p style="font-size:20px;font-weight:700;text-align:center">${esc(st.msg)}</p>
           ${r.heard?`<p class="small muted">Saya dengar: “${esc(r.heard)}”</p>`:''}
+          ${r.scores?`<p class="small muted" style="text-align:center">Sebutan ${Math.round(r.scores.pron||0)} · Ketepatan ${Math.round(r.scores.accuracy||0)} · Kelancaran ${Math.round(r.scores.fluency||0)} · Kelengkapan ${Math.round(r.scores.completeness||0)} <span class="en">(Azure scores out of 100: overall, accuracy, fluency, completeness)</span></p>`:''}
           ${near.length&&r.stars<3?`<div class="row" style="justify-content:center">${near.slice(0,3).map(w=>`<span class="opt">${say(w,'sm',0.6)} ${esc(w)}</span>`).join('')}</div>`:''}
-          <p class="en">Green = clear, amber = nearly, red = not heard. The iPad checks whether it understood him; it can't judge accent precisely.</p></div>`}
+          <p class="en">${r.azure?'Green = well pronounced, amber = nearly, red = needs work or skipped. Scored by Azure pronunciation assessment.':'Green = clear, amber = nearly, red = not heard. The iPad checks whether it understood him; it can\'t judge accent precisely.'}</p></div>`}
       else if(r&&r.noSpeech){result=`<div class="tip" style="text-align:center">Saya tak dengar apa-apa. Cakap lebih kuat dan dekat dengan iPad. <span class="en">Nothing was heard. Speak louder and closer.</span></div>`}
       else{result=`<div class="col" style="gap:8px;align-items:center"><p style="font-size:20px;font-weight:700">Dengar suara kamu, kemudian dengar contoh. Sama?</p><p class="en">Recording only (no automatic scoring on this device). Compare his voice with the model, then pick a face.</p>
         <div class="faces" style="align-self:stretch"><button data-act="mrate" data-v="2"><span>😀</span>Sama!</button><button data-act="mrate" data-v="1"><span>🙂</span>Hampir</button><button data-act="mrate" data-v="0"><span>😕</span>Belum</button></div></div>`}}
@@ -528,7 +550,7 @@ function micWidget(target,{onNext,nextLabel='Seterusnya →',ask='Giliran kamu! 
     const r=await Mic.listen(target);
     if(st.url)URL.revokeObjectURL(st.url);st.url=r.url;st.tries++;
     let res=null;
-    if(PRON_CONFIG.azureUrl&&r.blob){try{res=await remoteScore(target,r.blob);res.scored=true}catch(e){}}
+    if(PRON_CONFIG.azureUrl&&r.blob){st.phase='scoring';render();try{res=await remoteScore(target,r.blob);res.scored=true;Mic.azureError=''}catch(e){Mic.azureError=String(e.message||e)}}
     if(!res&&r.alts.length){res=scoreAttempt(target,r.alts);res.scored=true}
     if(!res&&r.noSpeech&&Mic.wantsRecog())res={noSpeech:true};
     if(!res&&!r.url&&!Mic.available()){st.phase='idle';render();toast('Mic unavailable — switching to faces.');return}
@@ -1085,6 +1107,9 @@ SCREENS.parent=()=>{const p=S.profile;const draft={name:p.name,age:p.age,family:
           ${[['auto','Listen and record (recommended)'],['recog','Listen only (no recording)'],['record','Record only (no automatic score)'],['off','Off: use faces instead']].map(([v,t])=>`<option value="${v}" ${Mic.mode()===v?'selected':''}>${t}</option>`).join('')}</select></label>
         <p class="small muted">Try “Listen only” if the mic test keeps failing; some iPads can't record and recognise at the same time.</p>
         ${micWidget('Saya sayang keluarga saya.',{ask:'Mic test: say “Saya sayang keluarga saya.”',nextLabel:'Done',onNext:()=>{toast('Mic test finished.');go('parent')}}).html()}
+        <div class="col" style="gap:6px"><span class="small muted"><b>Azure pronunciation scoring (optional).</b> Paste the address of your Azure scoring helper (from the Azure guide). It is stored only on this iPad.</span>
+          <div class="row"><input type="text" id="p-azure" class="grow" style="min-width:220px;font-size:15px" placeholder="https://….azurewebsites.net/api/score?code=…" value="${esc(S.settings.azureUrl||'')}" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn ghost" data-act="saveazure">Save</button></div>
+          ${S.settings.azureUrl?`<p class="small ${Mic.azureError?'':'muted'}">${Mic.azureError?`⚠ Last Azure check failed (${esc(Mic.azureError)}). The basic on-iPad score was used instead.`:'Azure scoring is on. Run the mic test to check it.'}</p>`:''}</div>
         <details><summary>iPad set-up for listening</summary><ul class="tips small" style="margin-top:8px">
           <li>Open the app in <b>Safari</b>. When it asks to use the microphone, tap <b>Allow</b>.</li>
           <li>Turn on dictation: <b>Settings → General → Keyboard → Enable Dictation</b>. Safari's listening uses Apple's speech service.</li>
@@ -1129,6 +1154,7 @@ SCREENS.parent=()=>{const p=S.profile;const draft={name:p.name,age:p.age,family:
     </div>`};
   const wire=()=>{const m=document.getElementById('p-mic');if(m)m.onchange=e=>{readForm();S.settings.micMode=e.target.value;Mic.recBroken=false;Mic.recorderBroken=false;Mic.conflict=false;save();draw()};
     const f=document.getElementById('p-import');if(f)f.onchange=e=>{const file=e.target.files[0];if(!file)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);if(!o||!o.profile)throw 0;S=hydrate(o);save();toast('Backup restored.');go('home')}catch(err){toast('That file is not a Jom Cakap backup.')}};rd.readAsText(file)}};
+  H.saveazure=()=>{readForm();const v=(document.getElementById('p-azure').value||'').trim();if(v&&!/^https:\/\//.test(v)){toast('The address must start with https://');return}S.settings.azureUrl=v;Mic.azureError='';save();toast(v?'Azure scoring saved.':'Azure scoring turned off.');draw()};
   H.export=()=>{const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='jom-cakap-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)};
   const readForm=()=>{const n=document.getElementById('p-name');const a=document.getElementById('p-age');if(n)draft.name=n.value;if(a)draft.age=+a.value};
   H.inc=el=>{readForm();const k=el.dataset.k;draft.family[k]=Math.min(5,(+draft.family[k]||0)+1);draw()};

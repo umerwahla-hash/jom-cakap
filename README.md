@@ -51,14 +51,6 @@ Progress lives in Safari on that iPad. Use **Parent corner → Data → Save bac
 
 When there is a new version, open your repository on GitHub, click **Add file → Upload files**, drop in the new `index.html` and commit. The iPad picks it up the next time the app is opened. If it doesn't, pull down to refresh.
 
-## Later: Azure pronunciation scores
+## Azure pronunciation scores (optional)
 
-`index.html` has `PRON_CONFIG={azureUrl:''}` near the start of the listening code. Once a small helper (an Azure Function holding your Azure Speech key) is set up, putting its address there makes the app send each recording for per-sound scoring. That replaces the basic score, and nothing else needs to change.
-
-The helper must:
-
-- accept a POST with the audio (Safari records `audio/mp4`; the helper converts it to 16 kHz WAV for Azure),
-- read the query parameters `?text=…&lang=ms-MY`,
-- reply with `{stars, words:[{w, status:"ok"|"near"|"miss"}], heard}`.
-
-Before building it, check Microsoft's *Language support → Pronunciation assessment* list for **ms-MY**.
+For per-sound scoring, follow **AZURE-SETUP.md**. The helper code is in the `azure-function/` folder. When it's running, paste its address into **Parent corner → Listening & pronunciation → Azure pronunciation scoring**. The address is stored only on the iPad, never in this public repository.
