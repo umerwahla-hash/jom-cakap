@@ -12,9 +12,10 @@ const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ
 
 function wordStatus(score, errorType) {
   if (errorType === 'Omission') return 'miss';
-  if (errorType === 'Mispronunciation') return score >= 60 ? 'near' : 'miss';
-  if (score >= 80) return 'ok';
-  if (score >= 60) return 'near';
+  if (errorType === 'Mispronunciation') return score >= 45 ? 'near' : 'miss';
+  // Calibrated on Azure's ms-MY model: a native Malay voice scores ~55-98 per word.
+  if (score >= 70) return 'ok';
+  if (score >= 45) return 'near';
   return 'miss';
 }
 
@@ -96,7 +97,8 @@ app.http('score', {
     });
 
     const overall = scores.pron || scores.accuracy;
-    const stars = overall >= 85 ? 3 : overall >= 70 ? 2 : overall >= 50 ? 1 : 0;
+    // A native Malay voice scores ~75-80 overall on ms-MY, so 75+ is treated as excellent.
+    const stars = overall >= 75 ? 3 : overall >= 60 ? 2 : overall >= 40 ? 1 : 0;
     return {
       status: 200,
       jsonBody: { stars, heard: best.Display || best.Lexical || j.DisplayText || '', words, scores }
